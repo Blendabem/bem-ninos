@@ -315,6 +315,9 @@ textarea{resize:none;height:60px}
 </style>
 <!-- Firebase SDK via CDN compatível (não usa import/module) -->
 
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -1092,20 +1095,64 @@ function notifyListeners(col){
 }
 
 function initFirebase(){
-  const fakeDb = { collection: (col)=>makeColRef(col) };
+  try {
+    // Aguardar Firebase SDK carregar
+    if(typeof firebase === 'undefined'){
+      console.warn('Firebase SDK ainda não carregou, tentando novamente...');
+      setTimeout(initFirebase, 200);
+      return;
+    }
+    var firebaseConfig = {
+      apiKey: "AIzaSyDAgr0U9CElN1DVXVmOHmktWEIPmGoypk8",
+      authDomain: "bem-ninos.firebaseapp.com",
+      projectId: "bem-ninos",
+      storageBucket: "bem-ninos.appspot.com",
+      messagingSenderId: "410215231112",
+      appId: "1:410215231112:web:150f1c1ad91e24a89793d"
+    };
+    if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+    window._fb = {
+      db: db,
+      collection: function(database, col){ return database.collection(col); },
+      doc: function(database, col, id){ return database.collection(col).doc(id); },
+      onSnapshot: function(ref, cb){ return ref.onSnapshot(cb); },
+      setDoc: function(ref, data){ return ref.set(data, {merge:true}); },
+      addDoc: function(ref, data){ return ref.add(data); },
+      deleteDoc: function(ref){ return ref.delete(); },
+      getDoc: function(ref){ return ref.get(); },
+      getDocs: function(ref){ return ref.get(); }
+    };
+    _fbReady = true;
+    window.dispatchEvent(new Event('fbReady'));
+    // Esconder banner offline se existir
+    var b = document.getElementById('offlineBanner');
+    if(b) b.style.display = 'none';
+  } catch(e) {
+    console.error('Firebase erro:', e.message);
+    // Fallback para localStorage se Firebase falhar
+    usarLocalStorage();
+  }
+}
+
+function usarLocalStorage(){
+  console.warn('Usando localStorage como fallback');
+  var fakeDb = { collection: function(col){ return makeColRef(col); } };
   window._fb = {
     db: fakeDb,
-    collection: (db, col) => makeColRef(col),
-    doc: (db, col, id) => makeRef(col, id),
-    onSnapshot: (ref, cb) => ref.onSnapshot(cb),
-    setDoc: (ref, data) => ref.set(data),
-    addDoc: (ref, data) => ref.add(data),
-    deleteDoc: (ref) => ref.delete(),
-    getDoc: (ref) => ref.get(),
-    getDocs: (ref) => Promise.resolve({ docs: lsGet(ref._col||'').map(item=>({id:item.id,data:()=>item})) }),
+    collection: function(db, col){ return makeColRef(col); },
+    doc: function(db, col, id){ return makeRef(col, id); },
+    onSnapshot: function(ref, cb){ return ref.onSnapshot(cb); },
+    setDoc: function(ref, data){ return ref.set(data); },
+    addDoc: function(ref, data){ return ref.add(data); },
+    deleteDoc: function(ref){ return ref.delete(); },
+    getDoc: function(ref){ return ref.get(); },
+    getDocs: function(ref){ return Promise.resolve({ docs: lsGet(ref._col||'').map(function(item){ return {id:item.id, data:function(){ return item; }}; }) }); }
   };
   _fbReady = true;
   window.dispatchEvent(new Event('fbReady'));
+  var b = document.getElementById('offlineBanner');
+  if(b) b.style.display = 'block';
 }
 // initFirebase chamado dentro do DOMContentLoaded principal
 
