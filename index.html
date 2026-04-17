@@ -325,14 +325,14 @@ textarea{resize:none;height:60px}
   <div class="login-card">
     <div class="login-title" id="loginTitulo">Como deseja entrar?</div>
     <div id="loginOpcoes">
-      <button class="login-btn" onclick="entrarVendedora()">👩 Entrar como Vendedora</button>
-      <button class="login-btn" style="background:#f0f7ff;color:var(--azul-c);border:2px solid var(--azul-c)" onclick="mostrarSenha('gestor')">📣 Gestor de Tráfego</button>
-      <button class="login-btn btn-sm" style="background:#f0f2fa;color:var(--azul);font-size:13px" onclick="mostrarSenha('dono')">👑 Gestoras</button>
+      <button class="login-btn" id="btnVendedora">👩 Entrar como Vendedora</button>
+      <button class="login-btn" id="btnGestor" style="background:#f0f7ff;color:var(--azul-c);border:2px solid var(--azul-c)">📣 Gestor de Tráfego</button>
+      <button class="login-btn btn-sm" id="btnGestoras" style="background:#f0f2fa;color:var(--azul);font-size:13px">👑 Gestoras</button>
     </div>
     <div id="loginSenha" style="display:none">
       <input class="login-input" type="password" id="inputSenha" placeholder="Digite a senha" onkeydown="if(event.key==='Enter')verificarSenha()">
-      <button class="login-btn" onclick="verificarSenha()">Entrar</button>
-      <button class="login-btn" style="background:#f0f2fa;color:var(--sub)" onclick="voltarLogin()">← Voltar</button>
+      <button class="login-btn" id="btnEntrar">Entrar</button>
+      <button class="login-btn" id="btnVoltar" style="background:#f0f2fa;color:var(--sub)">← Voltar</button>
       <div class="login-erro" id="loginErro"></div>
     </div>
   </div>
@@ -1106,9 +1106,8 @@ function initFirebase(){
   };
   _fbReady = true;
   window.dispatchEvent(new Event('fbReady'));
-  console.log('✅ App iniciado — dados salvos no dispositivo');
 }
-window.addEventListener('DOMContentLoaded', initFirebase);
+// initFirebase chamado dentro do DOMContentLoaded principal
 
 // ══════════════════════════════════════════
 // DADOS (estado local — espelho do Firestore)
@@ -1121,51 +1120,94 @@ let precDB     = JSON.parse(localStorage.getItem('bn_prec') || '[]');
 let adsDB      = []; // custos de anúncios
 let SENHA_DONO   = localStorage.getItem('bn_senha')   || '@!25';
 let SENHA_GESTOR = localStorage.getItem('bn_senha_g') || 'gestor123';
-let COMISSAO_PCT = parseFloat(localStorage.getItem('bn_comissao') || '5'); // % comissão vendedora
+let COMISSAO_PCT = parseFloat(localStorage.getItem('bn_comissao') || '5');
+
+// ══════════════════════════════════════════
+// ESTADO DA INTERFACE
+// ══════════════════════════════════════════
+let modoAtual = '';
+let _tipoLogin = '';
+let pMes = new Date().getMonth();
+let pAno = new Date().getFullYear();
+let pkMes = pMes;
+let pkAno = pAno;
+const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const DESP_IDS = ['d-trafego','d-ajuda','d-imposto','d-mentoria','d-olist','d-estoque-op','d-outras'];
+
+// ══════════════════════════════════════════
+// FUNÇÕES UTILITÁRIAS
+// ══════════════════════════════════════════
+const brl   = v => 'R$ '+Number(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const getN  = id => { const el=document.getElementById(id); return el ? (parseFloat(el.value)||0) : 0; };
+const pct   = (v,m) => m ? Math.min(100,Math.round((v/m)*100)) : 0;
+const ini   = n => (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const dpKey = () => `${pAno}-${String(pMes+1).padStart(2,'0')}`;
+function vPeriodo(){ return vendas.filter(v=>{ const d=new Date(v.data); return d.getMonth()===pMes&&d.getFullYear()===pAno; }); }
+
+// Cores avatar
+const CORES_AVATAR=['#2B2FA8','#5BBF2A','#F26522','#3BB8E8','#F5C400','#dc2626','#7C3AED','#059669'];
+function corN(n){ let h=0; for(let c of(n||''))h=(h*31+c.charCodeAt(0))%CORES_AVATAR.length; return CORES_AVATAR[h]; }
 
 // Inicializar dados quando DOM pronto
-window.addEventListener('DOMContentLoaded', function initDados(){
-  const { db, collection, onSnapshot } = window._fb;
+window.addEventListener('DOMContentLoaded', function(){
+  // 1. Inicializar banco de dados (localStorage)
+  try {
+    initFirebase();
+  } catch(e) { console.error('ERRO em initFirebase:', e.message, e.stack); return; }
 
-  onSnapshot(collection(db, 'ads'), snap => {
-    adsDB = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    adsDB.sort((a,b) => b.data > a.data ? 1 : -1);
+  // 2. Registrar listeners de dados (usa window._fb criado pelo initFirebase)
+  var fb = window._fb;
+  var db = fb.db;
+  var col = fb.collection;
+  var snap = fb.onSnapshot;
+
+  snap(col(db,'ads'), function(s){
+    adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    adsDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
     if(modoAtual==='dono') renderAnuncios();
   });
-
-  onSnapshot(collection(db, 'vendas'), snap => {
-    vendas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    vendas.sort((a,b) => b.data > a.data ? 1 : -1);
+  snap(col(db,'vendas'), function(s){
+    vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    vendas.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
     if(modoAtual) renderAll();
   });
-
-  onSnapshot(collection(db, 'estoque'), snap => {
-    estoqueDB = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    estoqueDB.sort((a,b) => b.data > a.data ? 1 : -1);
+  snap(col(db,'estoque'), function(s){
+    estoqueDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    estoqueDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
     if(modoAtual) renderEstoque();
   });
-
-  onSnapshot(collection(db, 'precificacao'), snap => {
-    precDB = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  snap(col(db,'precificacao'), function(s){
+    precDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     if(modoAtual){ renderPrecSalvos(); renderCatalogo(); }
   });
-
-  onSnapshot(collection(db, 'config'), snap => {
-    snap.docs.forEach(d=>{
-      if(d.id==='senha')       { SENHA_DONO=d.data().valor||'@!25'; localStorage.setItem('bn_senha',SENHA_DONO); }
-      if(d.id==='senha_gestor'){ SENHA_GESTOR=d.data().valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
-      if(d.id==='comissao')    { COMISSAO_PCT=parseFloat(d.data().valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
+  snap(col(db,'config'), function(s){
+    s.docs.forEach(function(d){
+      if(d.id==='senha')        { SENHA_DONO   = d.data().valor||'@!25';    localStorage.setItem('bn_senha',SENHA_DONO); }
+      if(d.id==='senha_gestor') { SENHA_GESTOR = d.data().valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
+      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(d.data().valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
     });
   });
 
-  console.log('App pronto');
+  // 3. Inicializar campos de data e itens
+  try {
+    var hoje = new Date().toISOString().split('T')[0];
+    var eData = document.getElementById('e-data');
+    var gtData = document.getElementById('gt-ad-data');
+    var fData = document.getElementById('f-data-venda');
+    if(eData) eData.value = hoje;
+    if(gtData) gtData.value = hoje;
+    if(fData) fData.value = hoje;
+    adicionarItem();
+  } catch(e) { console.error('ERRO campos/itens:', e.message); }
 });
+
+
 
 
 // ══════════════════════════════════════════
 // LOGIN / MODO
 // ══════════════════════════════════════════
-let _tipoLogin = 'dono'; // 'dono' | 'gestor'
+_tipoLogin = 'dono'; // valor inicial
 
 function entrarVendedora(){
   modoAtual='vendedora';
@@ -2251,11 +2293,9 @@ Entrega: R$${entrega.toFixed(2).replace('.',',')}`);
   }
 
   const totalBruto = Number(venda.val) + entrega;
-  linhas.push(`
-Total: R$${totalBruto.toFixed(2).replace('.',',')}`);
+  linhas.push('\nTotal: R$'+totalBruto.toFixed(2).replace('.',','));
 
-  const texto = linhas.join('
-');
+  const texto = linhas.join('\n');
   document.getElementById('resumoVendaTexto').textContent = texto;
   document.getElementById('resumoVendaModal').style.display = 'flex';
 }
@@ -2821,18 +2861,7 @@ function setBtnLoading(btn, loading){
 }
 
 // Inicializar quando DOM estiver pronto
-window.addEventListener('DOMContentLoaded', function(){
-  // definir data de hoje nos campos
-  const eData = document.getElementById('e-data');
-  const gtData = document.getElementById('gt-ad-data');
-  const fData = document.getElementById('f-data-venda');
-  const hoje = new Date().toISOString().split('T')[0];
-  if(eData) eData.value = hoje;
-  if(gtData) gtData.value = hoje;
-  if(fData) fData.value = hoje;
-  // inicializar com 1 item vazio
-  adicionarItem();
-});
+// campos de data e itens inicializados no DOMContentLoaded principal
 // PWA desativado
 
 // Banner de instalação no iOS
@@ -2866,6 +2895,48 @@ function removerFundoBranco(imgEl, tolerancia=30){
   ctx.putImageData(dados,0,0);
   imgEl.src=canvas.toDataURL('image/png');
 }
+</script>
+
+<!-- BOTÕES LOGIN — addEventListener no final do body -->
+<script>
+(function() {
+  function ligarBotoesLogin() {
+    var btnV = document.getElementById('btnVendedora');
+    var btnG = document.getElementById('btnGestor');
+    var btnD = document.getElementById('btnGestoras');
+    var btnE = document.getElementById('btnEntrar');
+    var btnB = document.getElementById('btnVoltar');
+
+    if (!btnV) { console.error('Botão Vendedora não encontrado'); return; }
+
+    btnV.addEventListener('click', function() {
+      
+      entrarVendedora();
+    });
+    btnG.addEventListener('click', function() {
+      
+      mostrarSenha('gestor');
+    });
+    btnD.addEventListener('click', function() {
+      
+      mostrarSenha('dono');
+    });
+    btnE.addEventListener('click', function() {
+      
+      verificarSenha();
+    });
+    btnB.addEventListener('click', function() {
+      voltarLogin();
+    });
+  }
+
+  // Garantir que roda após o DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ligarBotoesLogin);
+  } else {
+    ligarBotoesLogin();
+  }
+})();
 </script>
 </body>
 </html>
