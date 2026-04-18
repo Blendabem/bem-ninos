@@ -757,6 +757,28 @@ textarea{resize:none;height:60px}
       <div class="kpi-card c1"><div class="kpi-emoji">💰</div><div class="kpi-label">Valor Total (Ads)</div><div class="kpi-valor pos" id="gt-fat">R$ 0</div><div class="kpi-sub" id="gt-qtd">0 vendas</div></div>
       <div class="kpi-card c4"><div class="kpi-emoji">💸</div><div class="kpi-label">Custo Total (Ads)</div><div class="kpi-valor neg" id="gt-custo">R$ 0</div><div class="kpi-sub">Soma dos custos</div></div>
     </div>
+    <!-- Card Gasto Meta Ads -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title"><span class="dot" style="background:#1877F2"></span>💙 Gasto Meta Ads — Mês Atual</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="flex:1">
+          <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;margin-bottom:4px">Valor gasto na plataforma (R$)</div>
+          <input id="gt-meta-gasto" type="number" placeholder="0,00" inputmode="decimal"
+            style="width:100%;padding:11px 13px;border:2px solid #1877F2;border-radius:10px;font-size:18px;font-weight:800;color:#1877F2;background:#f0f4ff;outline:none"
+            oninput="salvarGastoMeta(this.value)">
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#f7f8fd;border-radius:10px;padding:10px 12px">
+        <div>
+          <div style="font-size:12px;color:var(--sub);font-weight:600">💡 Atualize mensalmente com o valor do painel do Meta Ads</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px" id="gt-meta-atualizado">Não atualizado</div>
+        </div>
+        <a href="https://adsmanager.facebook.com" target="_blank"
+          style="background:#1877F2;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap">
+          Abrir Meta Ads ↗
+        </a>
+      </div>
+    </div>
     <!-- Tabela por dia: automática das vendas marcadas como anúncio -->
     <div class="card">
       <div class="card-title"><span class="dot" style="background:var(--azul)"></span>Vendas via Anúncio por Dia</div>
@@ -1684,12 +1706,20 @@ async function registrarVenda(){
   if(isDono) calcCusto();
 
   const btnReg = document.querySelector('[onclick="registrarVenda()"]');
-  setBtnLoading(btnReg, true);
-  const ok = await fbSalvarVenda(venda);
-  setBtnLoading(btnReg, false);
+  if(btnReg) { btnReg.disabled = true; btnReg.style.opacity = '0.6'; }
+  let ok = false;
+  try {
+    ok = await fbSalvarVenda(venda);
+  } catch(e) {
+    console.error('Erro ao salvar venda:', e);
+  }
+  if(btnReg) { btnReg.disabled = false; btnReg.style.opacity = ''; }
   if(ok !== false){
     setLastSaved();
     showToast('✅ Venda registrada!');
+    mostrarResumoVenda(venda);
+  } else {
+    showToast('❌ Erro ao salvar. Tente novamente.','#dc2626');
   }
   pMes=new Date().getMonth(); pAno=new Date().getFullYear();
   atualizarLabel(); carregarDespesas();
@@ -1712,9 +1742,9 @@ async function salvarEstoque(){
     obs:document.getElementById('e-obs').value.trim()
   };
   const btnEst = document.querySelector('[onclick="salvarEstoque()"]');
-  setBtnLoading(btnEst, true);
+  if(btnEst){ btnEst.disabled=true; btnEst.style.opacity='0.6'; }
   const okEst = await fbSalvarEstoque(item);
-  setBtnLoading(btnEst, false);
+  if(btnEst){ btnEst.disabled=false; btnEst.style.opacity=''; }
   ['e-local','e-desc','e-qtd','e-valor','e-frete','e-obs','e-data'].forEach(id=>document.getElementById(id).value='');
   if(okEst !== false){ setLastSaved(); showToast('✅ Compra de estoque salva!'); }
 }
@@ -1861,9 +1891,9 @@ async function salvarPrecificacao(){
   // Salva no Firebase (fonte principal) e localStorage como cache
   localStorage.setItem('bn_prec',JSON.stringify(precDB));
   const btnPrec = document.querySelector('[onclick="salvarPrecificacao()"]');
-  setBtnLoading(btnPrec, true);
+  if(btnPrec){ btnPrec.disabled=true; btnPrec.style.opacity='0.6'; }
   const okPrec = await fbSalvarPrec(obj);
-  setBtnLoading(btnPrec, false);
+  if(btnPrec){ btnPrec.disabled=false; btnPrec.style.opacity=''; }
   if(okPrec !== false) setLastSaved();
   // Limpar campos de foto
   ['p-foto-url','p-foto-url-manual'].forEach(id=>{
@@ -2489,6 +2519,67 @@ async function salvarEdicao(){
   setLastSaved();
   showToast('✅ Venda atualizada!');
 }
+// ══════════════════════════════════════════
+// FUNÇÕES FIREBASE — SALVAR/DELETAR
+// ══════════════════════════════════════════
+async function fbSalvarVenda(venda){
+  try {
+    if(!_fbReady) throw new Error('Firebase não pronto');
+    const {db, collection, addDoc} = window._fb;
+    const ref = await addDoc(collection(db,'vendas'), venda);
+    venda.id = ref.id;
+    return true;
+  } catch(e){ console.error('fbSalvarVenda:', e); showToast('❌ Erro ao salvar venda','#dc2626'); return false; }
+}
+
+async function fbSalvarEstoque(item){
+  try {
+    if(!_fbReady) throw new Error('Firebase não pronto');
+    const {db, collection, addDoc} = window._fb;
+    await addDoc(collection(db,'estoque'), item);
+    return true;
+  } catch(e){ console.error('fbSalvarEstoque:', e); showToast('❌ Erro ao salvar estoque','#dc2626'); return false; }
+}
+
+async function fbSalvarPrec(obj){
+  try {
+    if(!_fbReady) throw new Error('Firebase não pronto');
+    const {db, doc, setDoc} = window._fb;
+    await setDoc(doc(db,'precificacao', String(obj.id)), obj);
+    return true;
+  } catch(e){ console.error('fbSalvarPrec:', e); showToast('❌ Erro ao salvar precificação','#dc2626'); return false; }
+}
+
+async function fbDeletarPrec(id){
+  try {
+    if(!_fbReady) throw new Error('Firebase não pronto');
+    const {db, doc, deleteDoc} = window._fb;
+    await deleteDoc(doc(db,'precificacao', String(id)));
+    return true;
+  } catch(e){ console.error('fbDeletarPrec:', e); showToast('❌ Erro ao deletar','#dc2626'); return false; }
+}
+
+async function fbSalvarConfig(docId, data){
+  try {
+    // Sempre salvar no localStorage como cache
+    localStorage.setItem('bn_meta_'+docId, JSON.stringify(data));
+    localStorage.setItem('bn_cfg_'+docId, JSON.stringify(data));
+    if(!_fbReady){ return true; }
+    const {db, doc, setDoc} = window._fb;
+    await setDoc(doc(db,'config', docId), data);
+    return true;
+  } catch(e){ console.error('fbSalvarConfig:', e); return false; }
+}
+
+async function fbSalvarAd(ad){
+  try {
+    if(!_fbReady) throw new Error('Firebase não pronto');
+    const {db, collection, addDoc} = window._fb;
+    await addDoc(collection(db,'ads'), ad);
+    return true;
+  } catch(e){ console.error('fbSalvarAd:', e); showToast('❌ Erro ao salvar anúncio','#dc2626'); return false; }
+}
+
 async function excluirVenda(){
   if(!_editVendaId){ showToast('⚠️ Nenhuma venda selecionada','#F26522'); return; }
   if(!_fbReady){ showToast('⚠️ Sem conexão Firebase','#F26522'); return; }
@@ -2522,7 +2613,42 @@ async function excluirVendaDireto(vendaId){
 // ══════════════════════════════════════════
 async function salvarCustoAdGestor(){ /* não usado mais */ }
 
+// Salvar gasto Meta Ads no Firebase
+let _metaSaveTimer = null;
+function salvarGastoMeta(valor){
+  clearTimeout(_metaSaveTimer);
+  _metaSaveTimer = setTimeout(async function(){
+    const v = parseFloat(valor)||0;
+    const mes = dpKey();
+    try {
+      await fbSalvarConfig('meta_gasto_'+mes, {valor: v, atualizado: new Date().toISOString()});
+      const agora = new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const el = document.getElementById('gt-meta-atualizado');
+      if(el) el.textContent = '✅ Atualizado em ' + agora;
+    } catch(e){ console.error('Erro ao salvar gasto meta:', e); }
+  }, 800);
+}
+
+function carregarGastoMeta(){
+  const mes = dpKey();
+  // Buscar do Firebase via config listener ou localStorage
+  const cached = localStorage.getItem('bn_meta_'+mes);
+  if(cached){
+    try {
+      const obj = JSON.parse(cached);
+      const el = document.getElementById('gt-meta-gasto');
+      if(el && obj.valor) el.value = obj.valor;
+      const dt = document.getElementById('gt-meta-atualizado');
+      if(dt && obj.atualizado){
+        const d = new Date(obj.atualizado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        dt.textContent = '✅ Atualizado em '+d;
+      }
+    } catch(e){}
+  }
+}
+
 function renderGestor(){
+  carregarGastoMeta();
   // Só vendas do período marcadas como anúncio (Firebase pode retornar string ou boolean)
   const vendasAds = vPeriodo().filter(v=>v.anuncio===true || v.anuncio==='true');
 
