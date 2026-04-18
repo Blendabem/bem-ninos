@@ -932,6 +932,7 @@ textarea{resize:none;height:60px}
           <div class="fg"><label>Meta Lucro (R$)</label><input type="number" id="mi-lucro" inputmode="numeric"></div>
           <div class="fg"><label>🔐 Alterar Senha do Dono</label><input type="password" id="mi-senha" placeholder="Nova senha"></div>
           <div class="fg"><label>📣 Alterar Senha do Gestor</label><input type="password" id="mi-senha-g" placeholder="Nova senha gestor"></div>
+          <div class="fg"><label>👩 Alterar Senha da Vendedora</label><input type="password" id="mi-senha-v" placeholder="Nova senha vendedora"></div>
           <div class="fg"><label>👩 Comissão da Vendedora (%)</label><input type="number" id="mi-comissao" placeholder="5" inputmode="decimal"></div>
           <button class="btn btn-primary" onclick="salvarMetas()">💾 Salvar</button>
         </div>
@@ -1288,6 +1289,7 @@ let precDB     = JSON.parse(localStorage.getItem('bn_prec') || '[]');
 let adsDB      = []; // custos de anúncios
 let SENHA_DONO   = localStorage.getItem('bn_senha')   || '@!25';
 let SENHA_GESTOR = localStorage.getItem('bn_senha_g') || 'gestor123';
+let SENHA_VEND   = localStorage.getItem('bn_senha_v') || 'vend26';
 let COMISSAO_PCT = parseFloat(localStorage.getItem('bn_comissao') || '5');
 
 // ══════════════════════════════════════════
@@ -1393,14 +1395,13 @@ window.addEventListener('DOMContentLoaded', function(){
 _tipoLogin = 'dono'; // valor inicial
 
 function entrarVendedora(){
-  modoAtual='vendedora';
-  iniciarApp();
+  mostrarSenha('vendedora');
 }
 function mostrarSenha(tipo){
   _tipoLogin = tipo;
   document.getElementById('loginOpcoes').style.display='none';
   document.getElementById('loginSenha').style.display='block';
-  document.getElementById('loginTitulo').textContent = tipo==='gestor' ? '📣 Gestor de Tráfego' : '👑 Gestoras';
+  document.getElementById('loginTitulo').textContent = tipo==='gestor' ? '📣 Gestor de Tráfego' : tipo==='vendedora' ? '👩 Vendedora' : '👑 Gestoras';
   setTimeout(()=>document.getElementById('inputSenha').focus(),100);
 }
 function mostrarSenhaDono(){ mostrarSenha('dono'); }
@@ -1413,7 +1414,8 @@ function voltarLogin(){
 }
 function verificarSenha(){
   const s=document.getElementById('inputSenha').value;
-  if(_tipoLogin==='gestor' && s===SENHA_GESTOR){ modoAtual='gestor'; iniciarApp(); }
+  if(_tipoLogin==='vendedora' && s===SENHA_VEND){ modoAtual='vendedora'; iniciarApp(); }
+  else if(_tipoLogin==='gestor' && s===SENHA_GESTOR){ modoAtual='gestor'; iniciarApp(); }
   else if(_tipoLogin==='dono' && s===SENHA_DONO){ modoAtual='dono'; iniciarApp(); }
   else{ document.getElementById('loginErro').textContent='Senha incorreta. Tente novamente.'; }
 }
@@ -3434,6 +3436,12 @@ async function salvarMetas(){
     SENHA_GESTOR=novaSenhaG; localStorage.setItem('bn_senha_g',SENHA_GESTOR);
     await fbSalvarConfig('senha_gestor',{valor:novaSenhaG});
     document.getElementById('mi-senha-g').value='';
+  }
+  const novaSenhaV=document.getElementById('mi-senha-v')?.value.trim();
+  if(novaSenhaV){
+    SENHA_VEND=novaSenhaV; localStorage.setItem('bn_senha_v',SENHA_VEND);
+    await fbSalvarConfig('senha_vend',{valor:novaSenhaV});
+    document.getElementById('mi-senha-v').value='';
   }
   const novaComissao=parseFloat(document.getElementById('mi-comissao').value);
   if(novaComissao){ COMISSAO_PCT=novaComissao; localStorage.setItem('bn_comissao',novaComissao); }
