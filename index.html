@@ -444,6 +444,17 @@ textarea{resize:none;height:60px}
             <select id="f-pag"><option value="">Selecione</option><option>PIX</option><option>Cartão Crédito</option><option>Cartão Débito</option><option>Dinheiro</option></select>
           </div>
         </div>
+        <!-- Dados extras do cliente (opcionais) -->
+        <div style="background:#eef0fb;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--azul);margin-bottom:4px;cursor:pointer" onclick="toggleDadosExtras()">
+          📋 Dados Adicionais do Cliente <span id="dadosExtrasIcon">▼</span>
+        </div>
+        <div id="dadosExtrasBox" style="display:none">
+          <div class="form-row">
+            <div class="fg"><label>CPF</label><input id="f-cpf" type="text" placeholder="000.000.000-00" inputmode="numeric"></div>
+            <div class="fg"><label>CEP</label><input id="f-cep" type="text" placeholder="00000-000" inputmode="numeric" oninput="buscarCEP(this.value)"></div>
+          </div>
+          <div class="fg"><label>Endereço</label><input id="f-endereco" type="text" placeholder="Rua, número, bairro"></div>
+        </div>
         <div class="fg"><label>Status</label>
           <select id="f-status"><option value="Pago">Pago ✅</option><option value="Enviado">Enviado 🚚</option><option value="Pendente">Pendente ⏳</option><option value="Cancelado">Cancelado ❌</option></select>
         </div>
@@ -1069,6 +1080,48 @@ textarea{resize:none;height:60px}
   </div>
 </div>
 
+<!-- MODAL DETALHE CLIENTE -->
+<div id="cliDetalheModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <!-- Header -->
+    <div style="padding:20px 20px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div id="cliDetalheAvatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#fff;flex-shrink:0"></div>
+          <div>
+            <div id="cliDetalheNome" style="font-size:17px;font-weight:900;color:#1a1d3a"></div>
+            <div id="cliDetalheBadge"></div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('cliDetalheModal').style.display='none'"
+          style="background:#f0f2fa;border:none;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer;font-size:16px">✕</button>
+      </div>
+      <!-- KPIs -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:#f7f8fd;border-radius:10px;padding:10px;text-align:center">
+          <div id="cliDetalheQtd" style="font-size:18px;font-weight:900;color:var(--azul)"></div>
+          <div style="font-size:10px;color:var(--sub);font-weight:700;margin-top:2px">Compras</div>
+        </div>
+        <div style="background:#f7f8fd;border-radius:10px;padding:10px;text-align:center">
+          <div id="cliDetalheTotal" style="font-size:14px;font-weight:900;color:var(--verde)"></div>
+          <div style="font-size:10px;color:var(--sub);font-weight:700;margin-top:2px">Total Gasto</div>
+        </div>
+        <div style="background:#f7f8fd;border-radius:10px;padding:10px;text-align:center">
+          <div id="cliDetalheTicket" style="font-size:14px;font-weight:900;color:var(--azul)"></div>
+          <div style="font-size:10px;color:var(--sub);font-weight:700;margin-top:2px">Ticket Médio</div>
+        </div>
+      </div>
+      <!-- Dados cadastrais -->
+      <div id="cliDadosCadastrais" style="margin-bottom:16px"></div>
+    </div>
+    <!-- Histórico de compras -->
+    <div style="padding:0 20px 20px">
+      <div style="font-size:12px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;margin-bottom:8px">🛍️ Histórico de Compras</div>
+      <div id="cliDetalheCompras"></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 <div id="lastSavedBar" style="display:none;position:fixed;bottom:72px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:var(--sub);padding:4px;z-index:200;pointer-events:none">
   <span id="lastSavedText"></span>
@@ -1297,9 +1350,24 @@ window.addEventListener('DOMContentLoaded', function(){
   });
   snap(col(db,'config'), function(s){
     s.docs.forEach(function(d){
-      if(d.id==='senha')        { SENHA_DONO   = d.data().valor||'@!25';    localStorage.setItem('bn_senha',SENHA_DONO); }
-      if(d.id==='senha_gestor') { SENHA_GESTOR = d.data().valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
-      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(d.data().valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
+      var data = d.data();
+      if(d.id==='senha')        { SENHA_DONO   = data.valor||'@!25';    localStorage.setItem('bn_senha',SENHA_DONO); }
+      if(d.id==='senha_gestor') { SENHA_GESTOR = data.valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
+      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(data.valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
+      if(d.id==='despesas'){
+        // Firebase salva despesas como objeto com chaves de mês
+        var obj = data.valor !== undefined ? data : data;
+        // Remover campo 'id' se existir
+        delete obj.id;
+        if(Object.keys(obj).length > 0){
+          despesasDB = obj;
+          localStorage.setItem('bn_d4', JSON.stringify(despesasDB));
+          if(modoAtual) carregarDespesas();
+        }
+      }
+      if(d.id==='metas'){
+        if(data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
+      }
     });
   });
 
@@ -1546,7 +1614,12 @@ function buildClientesMapa(){
     // Atualiza nome para o mais recente (caso tenha digitado diferente)
     mapa[chave].nome = v.cli;
     if(v.tel && !mapa[chave].tel) mapa[chave].tel = v.tel;
-    mapa[chave].compras.push({ data:v.data, val:Number(v.val), prod:v.prod, tam:v.tam });
+    mapa[chave].compras.push({ data:v.data, val:Number(v.val), prod:v.prod, tam:v.tam, id:v.id });
+    // Atualizar dados do cliente com informações mais recentes
+    if(v.cpf && !mapa[chave].cpf) mapa[chave].cpf = v.cpf;
+    if(v.cep && !mapa[chave].cep) mapa[chave].cep = v.cep;
+    if(v.endereco && !mapa[chave].endereco) mapa[chave].endereco = v.endereco;
+    if(v.cidade && !mapa[chave].cidade) mapa[chave].cidade = v.cidade;
     mapa[chave].totalGasto+=Number(v.val);
     mapa[chave].lucroTotal+=Number(v.lucro||0);
   });
@@ -1558,6 +1631,69 @@ function buildClientesMapa(){
     c.diasSemCompra=dias;
     return c;
   });
+}
+
+function abrirDetalheCliente(nome){
+  const todos = buildClientesMapa();
+  const c = todos.find(x=>x.nome===nome);
+  if(!c) return;
+
+  // Avatar
+  const av = document.getElementById('cliDetalheAvatar');
+  av.style.background = corN(c.nome);
+  av.textContent = ini(c.nome);
+
+  // Nome e badge
+  document.getElementById('cliDetalheNome').textContent = c.nome;
+  const dias = c.diasSemCompra;
+  const badge = dias>=60
+    ? '<span style="font-size:11px;font-weight:800;color:#dc2626">⚠️ '+dias+'d sem comprar</span>'
+    : dias>=40
+    ? '<span style="font-size:11px;font-weight:800;color:#b08000">⚠️ '+dias+'d sem comprar</span>'
+    : '<span style="font-size:11px;font-weight:800;color:#5BBF2A">✅ Cliente ativo</span>';
+  document.getElementById('cliDetalheBadge').innerHTML = badge;
+
+  // KPIs
+  document.getElementById('cliDetalheQtd').textContent = c.qtdCompras;
+  document.getElementById('cliDetalheTotal').textContent = brl(c.totalGasto);
+  document.getElementById('cliDetalheTicket').textContent = brl(c.ticketMedio);
+
+  // Dados cadastrais
+  const infos = [];
+  if(c.tel)      infos.push({icon:'📱', label:'WhatsApp', valor:c.tel, link:'https://wa.me/55'+c.tel.replace(/\D/g,'')});
+  if(c.cpf)      infos.push({icon:'🪪', label:'CPF', valor:c.cpf});
+  if(c.endereco) infos.push({icon:'📍', label:'Endereço', valor:c.endereco});
+  if(c.cep)      infos.push({icon:'📮', label:'CEP', valor:c.cep});
+  if(c.cidade)   infos.push({icon:'🏙️', label:'Cidade', valor:c.cidade});
+
+  const cadEl = document.getElementById('cliDadosCadastrais');
+  cadEl.innerHTML = infos.length ? infos.map(i=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f7f8fd;border-radius:10px;margin-bottom:6px">
+      <span style="font-size:16px">${i.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase">${i.label}</div>
+        <div style="font-size:13px;font-weight:700;color:#1a1d3a">${
+          i.link
+            ? '<a href="'+i.link+'" target="_blank" style="color:var(--azul);text-decoration:none">'+i.valor+' ↗</a>'
+            : i.valor
+        }</div>
+      </div>
+    </div>`).join('')
+    : '<div style="font-size:12px;color:var(--sub);padding:8px">Nenhum dado cadastral informado</div>';
+
+  // Histórico de compras
+  const comprasEl = document.getElementById('cliDetalheCompras');
+  const comprasOrdenadas = [...c.compras].sort((a,b)=>b.data.localeCompare(a.data));
+  comprasEl.innerHTML = comprasOrdenadas.map(comp=>`
+    <div style="background:#f7f8fd;border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#1a1d3a">${comp.prod||'–'}</div>
+        <div style="font-size:11px;color:var(--sub);margin-top:2px">${new Date(comp.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'})}</div>
+      </div>
+      <div style="font-size:14px;font-weight:900;color:var(--azul)">${brl(comp.val)}</div>
+    </div>`).join('');
+
+  document.getElementById('cliDetalheModal').style.display = 'flex';
 }
 
 function renderClientesFull(){
@@ -1634,6 +1770,10 @@ function renderClientesFull(){
           <div class="cli-stat-label">Lucro Gerado</div>
         </div>
       </div>
+      <button onclick="abrirDetalheCliente('${c.nome.replace(/'/g,"\'")}')"
+        style="width:100%;margin-top:10px;padding:8px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer">
+        🔍 Ver Detalhes e Histórico
+      </button>
     </div>`;
   }).join('');
 }
@@ -1700,6 +1840,9 @@ async function registrarVenda(){
   let venda = {
     data: dataVenda,
     cli, tel:document.getElementById('f-tel').value.trim(),
+    cpf:document.getElementById('f-cpf')?.value.trim()||'',
+    cep:document.getElementById('f-cep')?.value.trim()||'',
+    endereco:document.getElementById('f-endereco')?.value.trim()||'',
     prod, tam,
     itens: itensValidos,
     cidade:document.getElementById('f-cidade').value.trim(),
@@ -1724,7 +1867,7 @@ async function registrarVenda(){
   }
 
   // limpar form
-  ['f-cli','f-tel','f-cidade','f-obs'].forEach(id=>document.getElementById(id).value='');
+  ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   if(isDono){
     ['f-val','f-custo','f-emb','f-taxa','f-uber','f-frete','f-vend','f-outros','f-anuncio-nome'].forEach(id=>document.getElementById(id).value='');
     const fv=document.getElementById('f-vend'); if(fv) delete fv.dataset.manual;
@@ -2196,6 +2339,7 @@ async function salvarDespesas(){
   DESP_IDS.forEach(id=>{ obj[id]=getN(id); });
   despesasDB[k]=obj;
   localStorage.setItem('bn_d4',JSON.stringify(despesasDB));
+  // Salvar no Firebase como objeto completo
   await fbSalvarConfig('despesas', despesasDB);
   renderBalanco(); showToast('💾 Despesas salvas!');
 }
@@ -2238,10 +2382,13 @@ function sugerirProdutoItem(inputEl, itemId){
   box.id = 'prod-sug-'+itemId;
   box.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--azul);border-radius:0 0 10px 10px;z-index:300;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.15)';
   box.innerHTML = sugs.map(p=>`
-    <div onclick="selecionarProdutoItem(${itemId},'${p.nome.replace(/'/g,"\'")}',${p.precoFinal}); this.parentElement.remove()"
+    <div onclick="selecionarProdutoItem(${itemId},'${p.nome.replace(/'/g,"\\'")}',${p.precoFinal},${p.compra||0}); this.parentElement.remove()"
       style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between">
       <span>👕 ${p.nome}</span>
-      <span style="color:var(--azul);font-weight:800">${brl(p.precoFinal)}</span>
+      <div style="text-align:right">
+        <div style="color:var(--azul);font-weight:800">${brl(p.precoFinal)}</div>
+        ${p.compra ? `<div style="font-size:10px;color:var(--sub)">custo: ${brl(p.compra)}</div>` : ''}
+      </div>
     </div>`).join('');
   inputEl.parentElement.style.position='relative';
   inputEl.parentElement.appendChild(box);
@@ -2262,13 +2409,7 @@ function selecionarProdutoItem(itemId, nome, preco, custo){
       if(inp.type==='number' && inp.placeholder==='0,00') inp.value = preco;
     });
   }
-  // Preencher campo custo das peças com soma dos custos dos itens
-  const custoTotal = itensVenda.reduce((s,x)=>s+(x.custo||0)*(x.qtd||1),0);
-  const fCusto = document.getElementById('f-custo');
-  if(fCusto && custoTotal>0){
-    fCusto.value = custoTotal;
-    calcCusto();
-  }
+  // atualizarTotaisItens já cuida do f-custo automaticamente
   atualizarTotaisItens();
 }
 
@@ -2308,6 +2449,14 @@ function atualizarTotaisItens(){
   // Atualiza valor vendedora também
   const fvalv = document.getElementById('f-val-v');
   if(fvalv) fvalv.value = total > 0 ? total : '';
+  // ── Atualiza Custo das Peças (soma custo × qtd de cada item com custo cadastrado)
+  const custoTotal = itensVenda.reduce((s,x)=>s + (x.custo||0) * (x.qtd||1), 0);
+  const fCusto = document.getElementById('f-custo');
+  if(fCusto && custoTotal > 0){
+    fCusto.value = custoTotal.toFixed(2);
+    fCusto.dataset.manual = 'true'; // marcar para não sobrescrever
+  }
+  calcCusto();
   const nomes = itensVenda.filter(x=>x.prod).map(x=> x.qtd>1 ? x.qtd+'x '+x.prod : x.prod).join(', ');
   document.getElementById('f-prod').value = nomes || '';
   calcCusto();
@@ -2375,6 +2524,30 @@ function resetItens(){
   adicionarItem();
 }
 
+function toggleDadosExtras(){
+  const box = document.getElementById('dadosExtrasBox');
+  const icon = document.getElementById('dadosExtrasIcon');
+  if(!box) return;
+  const open = box.style.display === 'block';
+  box.style.display = open ? 'none' : 'block';
+  if(icon) icon.textContent = open ? '▼' : '▲';
+}
+
+function buscarCEP(cep){
+  cep = cep.replace(/\D/g,'');
+  if(cep.length !== 8) return;
+  fetch('https://viacep.com.br/ws/'+cep+'/json/')
+    .then(r=>r.json())
+    .then(d=>{
+      if(!d.erro){
+        const end = document.getElementById('f-endereco');
+        const cid = document.getElementById('f-cidade');
+        if(end && !end.value) end.value = (d.logradouro||'') + (d.bairro ? ', '+d.bairro : '');
+        if(cid && !cid.value) cid.value = d.localidade||'';
+      }
+    }).catch(()=>{});
+}
+
 // ══════════════════════════════════════════
 // AUTOCOMPLETE CLIENTE
 // ══════════════════════════════════════════
@@ -2414,9 +2587,18 @@ function sugerirClientePorTel(){
   }
 }
 
-function preencherCliente(nome, tel){
+function preencherCliente(nome, tel, cpf, endereco, cep, cidade){
   document.getElementById('f-cli').value = nome;
   if(tel) document.getElementById('f-tel').value = tel;
+  // Preencher dados extras se disponíveis
+  const cpfEl = document.getElementById('f-cpf');
+  const endEl = document.getElementById('f-endereco');
+  const cepEl = document.getElementById('f-cep');
+  const cidEl = document.getElementById('f-cidade');
+  if(cpf && cpfEl) { cpfEl.value = cpf; toggleDadosExtras(); }
+  if(endereco && endEl) endEl.value = endereco;
+  if(cep && cepEl) cepEl.value = cep;
+  if(cidade && cidEl) cidEl.value = cidade;
   document.getElementById('sugestoesCliente').style.display='none';
 }
 
@@ -2902,6 +3084,107 @@ function renderGestor(){
 // EXPORT EXCEL
 // ══════════════════════════════════════════
 function exportarExcel(){
+  // Gera CSV com todas as informações do mês
+  const mes = vPeriodo();
+  const k   = dpKey();
+  const desp = despesasDB[k]||{};
+  const despOp = DESP_IDS.reduce((s,id)=>s+getN(id),0);
+  const fat    = mes.reduce((s,v)=>s+Number(v.val),0);
+  const custos = mes.reduce((s,v)=>s+Number(v.totalC||0),0);
+  const lucro  = mes.reduce((s,v)=>s+Number(v.lucro||0),0);
+
+  const linhas = [];
+
+  // ── CABEÇALHO RESUMO ──
+  linhas.push(['=== RESUMO DO MÊS ===','','','','','','']);
+  linhas.push(['Mês', MESES[pMes]+' '+pAno,'','','','','']);
+  linhas.push(['Faturamento', fat,'','','','','']);
+  linhas.push(['Custos das Vendas', custos,'','','','','']);
+  linhas.push(['Lucro Bruto', fat-custos,'','','','','']);
+  linhas.push(['Despesas Operacionais', despOp,'','','','','']);
+  linhas.push(['Lucro Líquido', fat-custos-despOp,'','','','','']);
+  linhas.push(['Total de Pedidos', mes.length,'','','','','']);
+  linhas.push(['','','','','','','']);
+
+  // ── DESPESAS OPERACIONAIS ──
+  linhas.push(['=== DESPESAS OPERACIONAIS ===','','','','','','']);
+  const despLabels = {
+    'd-trafego':'Gestor de Tráfego','d-ajuda':'Ajuda Custo Vendedora',
+    'd-imposto':'Imposto','d-mentoria':'Mentoria','d-olist':'Olist',
+    'd-estoque-op':'Compras Estoque','d-outras':'Outras Despesas'
+  };
+  DESP_IDS.forEach(id=>{ linhas.push([despLabels[id]||id, desp[id]||0,'','','','','']); });
+  linhas.push(['','','','','','','']);
+
+  // ── VENDAS ──
+  linhas.push(['=== VENDAS DO MÊS ===','','','','','','','','','','']);
+  linhas.push(['Data','Cliente','WhatsApp','Produto','Pagamento','Status','Valor','Custo Peça','Embalagem','Taxa Cartão','Uber/Boy','Frete','Vendedora','Outros','Total Custos','Lucro','Via Anúncio']);
+  mes.forEach(v=>{
+    linhas.push([
+      new Date(v.data).toLocaleDateString('pt-BR'),
+      v.cli||'', v.tel||'', v.prod||'',
+      v.pag||'', v.status||'',
+      Number(v.val||0),
+      Number(v.custo||0), Number(v.emb||0),
+      Number(v.taxaVal||0), Number(v.uber||0),
+      Number(v.frete||0), Number(v.vend||0),
+      Number(v.outros||0), Number(v.totalC||0),
+      Number(v.lucro||0),
+      v.anuncio?'Sim':'Não'
+    ]);
+  });
+  linhas.push(['','','','','','','']);
+
+  // ── ESTOQUE (compras do mês) ──
+  const estMes = estoqueDB.filter(e=>e.mes===k);
+  if(estMes.length){
+    linhas.push(['=== COMPRAS DE ESTOQUE ===','','','','']);
+    linhas.push(['Data','Fornecedor','Descrição','Qtd','Valor','Frete','Total']);
+    estMes.forEach(e=>{
+      linhas.push([e.data||'', e.local||'', e.desc||'', e.qtd||0, e.valor||0, e.frete||0, e.total||0]);
+    });
+    linhas.push(['','','','','','','']);
+  }
+
+  // ── PRECIFICAÇÃO ──
+  if(precDB.length){
+    linhas.push(['=== CATÁLOGO DE PRODUTOS ===','','','','','']);
+    linhas.push(['Produto','Preço Final','Custo da Peça','Tecido','Tamanhos','Cores','Qtd Estoque']);
+    precDB.forEach(p=>{
+      linhas.push([p.nome||'', p.precoFinal||0, p.compra||0, p.tecido||'', p.tamanhos||'', p.cores||'', p.qtdEstoque||0]);
+    });
+    linhas.push(['','','','','','','']);
+  }
+
+  // ── CLIENTES ──
+  const clientesMapa = buildClientesMapa();
+  if(clientesMapa.length){
+    linhas.push(['=== CLIENTES ===','','','','']);
+    linhas.push(['Nome','WhatsApp','Total Compras','Total Gasto','Ticket Médio','Dias sem comprar']);
+    clientesMapa.forEach(c=>{
+      linhas.push([c.nome||'', c.tel||'', c.qtdCompras||0, c.totalGasto||0, c.ticketMedio||0, c.diasSemCompra||0]);
+    });
+  }
+
+  // Gerar CSV
+  const csv = '﻿' + linhas.map(row =>
+    row.map(cell => {
+      const s = String(cell===null||cell===undefined ? '' : cell);
+      if(s.indexOf(',')>=0 || s.indexOf('"')>=0) return '"'+s.replace(/"/g,'""')+'"';
+      return s;
+    }).join(',')
+  ).join('\n');
+
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = 'BemNinos_'+MESES[pMes]+'_'+pAno+'.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📊 Excel exportado!');
+}
+function exportarExcel_OLD(){
   const mes = vPeriodo();
   if(!mes.length){ showToast('⚠️ Nenhuma venda no período!','#F26522'); return; }
 
