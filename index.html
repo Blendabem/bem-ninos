@@ -636,6 +636,15 @@ textarea{resize:none;height:60px}
         <div class="card-title"><span class="dot" style="background:var(--amarelo)"></span>Calculadora de Preço</div>
         <div class="form-stack">
           <div class="fg"><label>📛 Nome do Produto</label><input id="p-nome" type="text" placeholder="Ex: Camiseta Polo Azul T8"></div>
+          <div class="form-row">
+            <div class="fg"><label>🧵 Tecido / Composição</label><input id="p-tecido" type="text" placeholder="Ex: 100% Algodão"></div>
+            <div class="fg"><label>📐 Tamanhos Disponíveis</label><input id="p-tamanhos" type="text" placeholder="Ex: 1,2,4,6,8"></div>
+          </div>
+          <div class="fg"><label>📝 Detalhes / Observações</label><input id="p-detalhes" type="text" placeholder="Ex: Lavável, secagem rápida, botões frontais"></div>
+          <div class="form-row">
+            <div class="fg"><label>🎨 Cores Disponíveis</label><input id="p-cores" type="text" placeholder="Ex: Azul, Vermelho, Branco"></div>
+            <div class="fg"><label>📦 Qtd. em Estoque</label><input id="p-qtd-estoque" type="number" placeholder="0" inputmode="numeric" min="0"></div>
+          </div>
 
           <!-- MODO: calculadora ou valor manual -->
           <div style="display:flex;gap:8px;margin-bottom:4px">
@@ -652,25 +661,25 @@ textarea{resize:none;height:60px}
             <!-- Foto via URL -->
             <div class="fg" style="margin-top:8px">
               <label>📷 Link da Foto (opcional)</label>
-              <input id="p-foto-url-manual" type="url" placeholder="Cole o link da foto aqui..." oninput="previewFotoUrl('p-foto-url-manual','fotoPreviewManual')">
+              <input id="p-foto-url-manual" type="text" placeholder="Cole aqui o link do Google Drive, WhatsApp ou Instagram..." oninput="previewFotoUrl('p-foto-url-manual','fotoPreviewManual')">
             </div>
             <div id="fotoPreviewManualWrap" style="display:none;margin-top:8px">
               <img id="fotoPreviewManual" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:2px solid var(--borda)">
             </div>
             <div style="background:#e8f4ff;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:#1a6fa8;margin-top:8px">
-              💡 Cole o link de uma foto do Google Drive, Instagram ou WhatsApp. Não pesa o app!
+              💡 Como pegar o link: Google Drive → clique direito na foto → "Compartilhar" → "Copiar link". Instagram → clique nos 3 pontos → "Copiar link".
             </div>
           </div>
 
           <!-- MODO CALCULADORA -->
           <div id="prec-calc">
             <label>📷 Link da Foto do Produto (opcional)</label>
-            <input id="p-foto-url" type="url" placeholder="Cole o link da foto aqui..." style="margin-bottom:8px" oninput="previewFotoUrl('p-foto-url','fotoPreviewCalc')">
+            <input id="p-foto-url" type="text" placeholder="Cole aqui o link do Google Drive, WhatsApp ou Instagram..." style="margin-bottom:8px" oninput="previewFotoUrl('p-foto-url','fotoPreviewCalc')">
             <div id="fotoPreviewCalcWrap" style="display:none;margin-bottom:8px">
               <img id="fotoPreviewCalc" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;border:2px solid var(--borda)">
             </div>
             <div style="background:#e8f4ff;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:#1a6fa8;margin-bottom:12px">
-              💡 Cole o link de uma foto do Google Drive, Instagram ou WhatsApp. Não pesa o app!
+              💡 Como pegar o link: Google Drive → clique direito na foto → "Compartilhar" → "Copiar link". Instagram → clique nos 3 pontos → "Copiar link".
             </div>
           <div class="divider"></div>
           <div style="font-size:11px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.4px">Custos Embutidos</div>
@@ -1020,6 +1029,43 @@ textarea{resize:none;height:60px}
       style="width:100%;margin-top:8px;padding:11px;background:#f0f2fa;color:var(--azul);border:none;border-radius:12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;font-weight:800;cursor:pointer">
       Fechar
     </button>
+  </div>
+</div>
+
+<!-- MODAL DETALHES PRODUTO -->
+<div id="prodDetalheModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <!-- Foto -->
+    <div id="prodDetalheImg" style="display:none;position:relative">
+      <a id="prodDetalheFotoLink" href="#" target="_blank" rel="noopener">
+        <img id="prodDetalheFoto" style="width:100%;max-height:260px;object-fit:cover;border-radius:20px 20px 0 0" src="">
+        <div style="position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.5);color:#fff;border-radius:6px;padding:4px 8px;font-size:11px;font-weight:800">📷 Toque para ampliar ↗</div>
+      </a>
+    </div>
+    <!-- Sem foto -->
+    <div id="prodDetalheSemFoto" style="background:#f0f4ff;border-radius:20px 20px 0 0;padding:30px;text-align:center;font-size:40px">👕</div>
+    <!-- Conteúdo -->
+    <div style="padding:20px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+        <div style="flex:1">
+          <div id="prodDetalheNome" style="font-size:18px;font-weight:900;color:#1a1d3a;line-height:1.2"></div>
+          <div id="prodDetalhePreco" style="font-size:22px;font-weight:900;color:var(--azul);margin-top:4px"></div>
+        </div>
+        <button onclick="document.getElementById('prodDetalheModal').style.display='none'"
+          style="background:#f0f2fa;border:none;border-radius:8px;padding:6px 12px;font-weight:800;cursor:pointer;font-size:16px;margin-left:8px">✕</button>
+      </div>
+      <!-- Badge estoque -->
+      <div id="prodDetalheEstoque" style="display:none;margin-bottom:12px"></div>
+      <!-- Informações -->
+      <div id="prodDetalheInfos" style="display:flex;flex-direction:column;gap:10px"></div>
+      <!-- Link foto externo -->
+      <div id="prodDetalheLinkBox" style="display:none;margin-top:14px">
+        <a id="prodDetalheLinkBtn" href="#" target="_blank" rel="noopener"
+          style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:12px;background:#f0f4ff;color:var(--azul);border:2px solid #D8DEFF;border-radius:12px;font-weight:800;font-size:14px;text-decoration:none">
+          📷 Ver foto completa ↗
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1862,6 +1908,11 @@ function calcPreco(){
 
 async function salvarPrecificacao(){
   const nome=document.getElementById('p-nome').value.trim();
+  const tecido   = document.getElementById('p-tecido')?.value.trim()||'';
+  const tamanhos = document.getElementById('p-tamanhos')?.value.trim()||'';
+  const detalhes = document.getElementById('p-detalhes')?.value.trim()||'';
+  const cores     = document.getElementById('p-cores')?.value.trim()||'';
+  const qtdEstoque= parseInt(document.getElementById('p-qtd-estoque')?.value)||0;
   if(!nome){ showToast('⚠️ Informe o nome do produto!','#F26522'); return; }
 
   // Pega URL da foto conforme modo
@@ -1886,6 +1937,7 @@ async function salvarPrecificacao(){
     obj={id:Date.now(),nome,modoManual:false,compra,despesa,salario,cartaoPct,impostoPct,frete,brinde,comissaoPct,lucroPct,semLucro,precoFinal,foto};
   }
 
+  obj.tecido=tecido; obj.tamanhos=tamanhos; obj.detalhes=detalhes; obj.cores=cores; obj.qtdEstoque=qtdEstoque;
   const idx=precDB.findIndex(p=>p.nome===nome);
   if(idx>=0) precDB[idx]=obj; else precDB.unshift(obj);
   // Salva no Firebase (fonte principal) e localStorage como cache
@@ -1895,12 +1947,22 @@ async function salvarPrecificacao(){
   const okPrec = await fbSalvarPrec(obj);
   if(btnPrec){ btnPrec.disabled=false; btnPrec.style.opacity=''; }
   if(okPrec !== false) setLastSaved();
-  // Limpar campos de foto
-  ['p-foto-url','p-foto-url-manual'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
+  // Limpar TODOS os campos do formulário
+  ['p-nome','p-tecido','p-tamanhos','p-detalhes','p-cores','p-qtd-estoque',
+   'p-foto-url','p-foto-url-manual',
+   'p-val-manual','p-custo-manual',
+   'p-compra','p-despesa','p-salario','p-cartao','p-imposto',
+   'p-frete','p-brinde','p-comissao','p-lucro'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
   });
   ['fotoPreviewCalcWrap','fotoPreviewManualWrap'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
+  });
+  // Resetar resultado calculadora
+  ['pr-compra','pr-despesa','pr-salario','pr-cartao','pr-imposto',
+   'pr-frete','pr-brinde','pr-comissao','pr-semlucro','pr-lucro-val'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='R$ 0,00';
   });
   renderPrecSalvos();
   renderCatalogo();
@@ -1933,6 +1995,67 @@ function renderPrecSalvos(){
   `).join('');
 }
 
+function abrirDetalhe(prodId){
+  const p = precDB.find(x=>String(x.id)===String(prodId));
+  if(!p) return;
+
+  // Nome e preço
+  document.getElementById('prodDetalheNome').textContent = p.nome;
+  document.getElementById('prodDetalhePreco').textContent = brl(p.precoFinal);
+
+  // Foto
+  if(p.foto){
+    document.getElementById('prodDetalheImg').style.display='block';
+    document.getElementById('prodDetalheSemFoto').style.display='none';
+    document.getElementById('prodDetalheFoto').src = p.foto;
+    document.getElementById('prodDetalheFotoLink').href = p.foto;
+    document.getElementById('prodDetalheLinkBox').style.display='block';
+    document.getElementById('prodDetalheLinkBtn').href = p.foto;
+  } else {
+    document.getElementById('prodDetalheImg').style.display='none';
+    document.getElementById('prodDetalheSemFoto').style.display='block';
+    document.getElementById('prodDetalheLinkBox').style.display='none';
+  }
+
+  // Informações
+  // Badge de estoque
+  const qtd = p.qtdEstoque||0;
+  const estoqueEl = document.getElementById('prodDetalheEstoque');
+  if(estoqueEl){
+    if(qtd === 0){
+      estoqueEl.innerHTML = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Sem estoque</span>';
+    } else if(qtd <= 3){
+      estoqueEl.innerHTML = '<span style="background:#fff7e0;color:#b08000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Apenas '+qtd+' peça'+(qtd>1?'s':'')+' em estoque</span>';
+    } else {
+      estoqueEl.innerHTML = '<span style="background:#e8f9e0;color:#5BBF2A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">✅ '+qtd+' em estoque</span>';
+    }
+    estoqueEl.style.display = 'block';
+  }
+
+  const infos = [];
+  if(p.cores)    infos.push({icon:'🎨', label:'Cores disponíveis', valor:p.cores});
+  if(p.tamanhos) infos.push({icon:'📐', label:'Tamanhos', valor:p.tamanhos});
+  if(p.tecido)   infos.push({icon:'🧵', label:'Tecido', valor:p.tecido});
+  if(p.detalhes) infos.push({icon:'📝', label:'Detalhes', valor:p.detalhes});
+  if(!p.modoManual && p.compra) infos.push({icon:'🏷️', label:'Custo da peça', valor:brl(p.compra)});
+
+  const infosEl = document.getElementById('prodDetalheInfos');
+  if(infos.length){
+    infosEl.innerHTML = infos.map(i=>`
+      <div style="background:#f7f8fd;border-radius:10px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start">
+        <span style="font-size:18px">${i.icon}</span>
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase">${i.label}</div>
+          <div style="font-size:14px;font-weight:700;color:#1a1d3a;margin-top:2px">${i.valor}</div>
+        </div>
+      </div>`).join('');
+  } else {
+    infosEl.innerHTML = '<div style="color:var(--sub);font-size:13px;text-align:center;padding:8px">Nenhum detalhe cadastrado</div>';
+  }
+
+  document.getElementById('prodDetalheModal').style.display='flex';
+}
+
 function renderCatalogo(){
   const el=document.getElementById('catalogoGrid');
   el.className=''; // remove grid, vira lista
@@ -1957,16 +2080,29 @@ function renderCatalogo(){
     <div style="margin-bottom:12px">
       <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;padding:6px 2px 4px">${tipo}</div>
       ${prods.map(p=>`
-        <div class="cat-list-item" onclick="toggleFotoCatalogo('foto-cat-${p.id}')" style="background:#fff;border-radius:12px;padding:12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer">
-          <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:800;color:var(--texto)">${p.nome}</div>
-            ${p.foto?'<div style="font-size:10px;color:var(--sub);margin-top:2px">📷 toque para ver foto</div>':'<div style="font-size:10px;color:var(--sub);margin-top:2px">Sem foto</div>'}
+        <div style="background:#fff;border-radius:12px;padding:12px;margin-bottom:6px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:800;color:var(--texto)">${p.nome}</div>
+              ${p.tamanhos ? `<div style="font-size:11px;color:var(--sub);margin-top:2px">📐 ${p.tamanhos}</div>` : ''}
+            ${p.cores ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">🎨 ${p.cores}</div>` : ''}
+            ${(p.qtdEstoque!==undefined) ? `<div style="margin-top:3px"><span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;${p.qtdEstoque===0?'background:#fee2e2;color:#dc2626':p.qtdEstoque<=3?'background:#fff7e0;color:#b08000':'background:#e8f9e0;color:#5BBF2A'}">${p.qtdEstoque===0?'⚠️ Sem estoque':p.qtdEstoque<=3?'⚠️ '+p.qtdEstoque+' restantes':'✅ '+p.qtdEstoque+' em estoque'}</span></div>` : ''}
+            </div>
+            <div style="text-align:right;flex-shrink:0;margin-left:12px">
+              <div style="font-size:17px;font-weight:900;color:var(--azul)">${brl(p.precoFinal)}</div>
+            </div>
           </div>
-          <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:800;color:var(--azul);margin-left:12px;white-space:nowrap">${brl(p.precoFinal)}</div>
+          <div style="display:flex;gap:6px;margin-top:8px">
+            <button onclick="abrirDetalhe('${p.id}')"
+              style="flex:1;padding:7px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">
+              🔍 Detalhes
+            </button>
+            ${p.foto ? `<a href="${p.foto}" target="_blank" rel="noopener"
+              style="flex:1;padding:7px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;text-decoration:none;text-align:center">
+              📷 Foto ↗
+            </a>` : ''}
+          </div>
         </div>
-        ${p.foto?`<div id="foto-cat-${p.id}" style="display:none;margin:-2px 0 8px 0">
-          <img src="${p.foto}" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px" onerror="this.parentElement.style.display='none'">
-        </div>`:''}
       `).join('')}
     </div>
   `).join('');
@@ -1999,6 +2135,16 @@ function editarPrec(prodId){
 
   // Preenche nome
   document.getElementById('p-nome').value = p.nome;
+  const tEl = document.getElementById('p-tecido');
+  const tamEl = document.getElementById('p-tamanhos');
+  const detEl = document.getElementById('p-detalhes');
+  const coresEl = document.getElementById('p-cores');
+  const qtdEl = document.getElementById('p-qtd-estoque');
+  if(tEl) tEl.value = p.tecido||'';
+  if(tamEl) tamEl.value = p.tamanhos||'';
+  if(detEl) detEl.value = p.detalhes||'';
+  if(coresEl) coresEl.value = p.cores||'';
+  if(qtdEl) qtdEl.value = p.qtdEstoque||0;
 
   if(p.modoManual){
     // Modo manual
@@ -2101,11 +2247,12 @@ function sugerirProdutoItem(inputEl, itemId){
   inputEl.parentElement.appendChild(box);
 }
 
-function selecionarProdutoItem(itemId, nome, preco){
+function selecionarProdutoItem(itemId, nome, preco, custo){
   const item = itensVenda.find(x=>x.id===itemId);
   if(!item) return;
-  item.prod = nome;
-  item.val  = preco;
+  item.prod  = nome;
+  item.val   = preco;
+  item.custo = custo||0;
   // Atualiza campos visualmente sem re-render completo
   const row = document.getElementById('item-row-'+itemId);
   if(row){
@@ -2114,6 +2261,13 @@ function selecionarProdutoItem(itemId, nome, preco){
       if(inp.type==='text') inp.value = nome;
       if(inp.type==='number' && inp.placeholder==='0,00') inp.value = preco;
     });
+  }
+  // Preencher campo custo das peças com soma dos custos dos itens
+  const custoTotal = itensVenda.reduce((s,x)=>s+(x.custo||0)*(x.qtd||1),0);
+  const fCusto = document.getElementById('f-custo');
+  if(fCusto && custoTotal>0){
+    fCusto.value = custoTotal;
+    calcCusto();
   }
   atualizarTotaisItens();
 }
