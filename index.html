@@ -438,12 +438,6 @@ textarea{resize:none;height:60px}
           <span style="font-size:13px;font-weight:800;color:var(--sub)">🛍️ Total dos Itens</span>
           <span id="totalItensVal" style="font-size:16px;font-weight:900;color:var(--azul)">R$ 0,00</span>
         </div>
-        <div class="form-row">
-          <div class="fg"><label>Cidade</label><input id="f-cidade" type="text" placeholder="Ex: Goiânia"></div>
-          <div class="fg"><label>Pagamento</label>
-            <select id="f-pag"><option value="">Selecione</option><option>PIX</option><option>Cartão Crédito</option><option>Cartão Débito</option><option>Dinheiro</option></select>
-          </div>
-        </div>
         <!-- Dados extras do cliente (opcionais) -->
         <div style="background:#eef0fb;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--azul);margin-bottom:4px;cursor:pointer" onclick="toggleDadosExtras()">
           📋 Dados Adicionais do Cliente <span id="dadosExtrasIcon">▼</span>
@@ -454,6 +448,12 @@ textarea{resize:none;height:60px}
             <div class="fg"><label>CEP</label><input id="f-cep" type="text" placeholder="00000-000" inputmode="numeric" oninput="buscarCEP(this.value)"></div>
           </div>
           <div class="fg"><label>Endereço</label><input id="f-endereco" type="text" placeholder="Rua, número, bairro"></div>
+        </div>
+        <div class="form-row">
+          <div class="fg"><label>Cidade</label><input id="f-cidade" type="text" placeholder="Ex: Goiânia"></div>
+          <div class="fg"><label>Pagamento</label>
+            <select id="f-pag"><option value="">Selecione</option><option>PIX</option><option>Cartão Crédito</option><option>Cartão Débito</option><option>Dinheiro</option></select>
+          </div>
         </div>
         <div class="fg"><label>Status</label>
           <select id="f-status"><option value="Pago">Pago ✅</option><option value="Enviado">Enviado 🚚</option><option value="Pendente">Pendente ⏳</option><option value="Cancelado">Cancelado ❌</option></select>
@@ -498,6 +498,13 @@ textarea{resize:none;height:60px}
           <label>💲 Valor de Venda (R$)</label>
           <input id="f-val-v" type="number" placeholder="0,00" inputmode="decimal" readonly style="background:#f0f2ff;font-weight:800;color:var(--azul)">
           <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600">💡 Calculado automaticamente pelos itens acima</div>
+          <div style="margin-top:10px">
+            <label>📬 Frete / Entrega (R$)</label>
+            <input id="f-frete-vend" type="number" placeholder="0,00" inputmode="decimal"
+              style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--borda);font-size:14px;font-weight:700;background:#fff;outline:none"
+              oninput="atualizarFreteVendedora(this.value)">
+            <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600">💡 Cobrado do cliente — não entra na comissão</div>
+          </div>
         </div>
 
         <!-- MARCAÇÃO VENDEDORA -->
@@ -1789,8 +1796,11 @@ function calcCusto(){
   // Comissão só preenche se vendedora1 estiver ativo
   const vendEl = document.getElementById('f-vend');
   if(vendaVendedora1 && vendEl.dataset.manual !== 'true'){
-    const vendAuto = Math.round(val * (COMISSAO_PCT/100) * 100)/100;
-    vendEl.value = val > 0 ? vendAuto : '';
+    // Comissão calculada sobre valor SEM frete (frete é cobrado do cliente)
+    const frete = getN('f-frete');
+    const valSemFrete = Math.max(0, val - frete);
+    const vendAuto = Math.round(valSemFrete * (COMISSAO_PCT/100) * 100)/100;
+    vendEl.value = valSemFrete > 0 ? vendAuto : '';
   }
   const vend = parseFloat(vendEl.value)||0;
 
@@ -1869,7 +1879,7 @@ async function registrarVenda(){
   }
 
   // limpar form
-  ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco','f-frete-vend'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   if(isDono){
     ['f-val','f-custo','f-emb','f-taxa','f-uber','f-frete','f-vend','f-outros','f-anuncio-nome'].forEach(id=>document.getElementById(id).value='');
     const fv=document.getElementById('f-vend'); if(fv) delete fv.dataset.manual;
@@ -2389,7 +2399,6 @@ function sugerirProdutoItem(inputEl, itemId){
       <span>👕 ${p.nome}</span>
       <div style="text-align:right">
         <div style="color:var(--azul);font-weight:800">${brl(p.precoFinal)}</div>
-        ${p.compra ? `<div style="font-size:10px;color:var(--sub)">custo: ${brl(p.compra)}</div>` : ''}
       </div>
     </div>`).join('');
   inputEl.parentElement.style.position='relative';
@@ -2517,6 +2526,13 @@ function renderItens(){
   }).join('');
 
   atualizarTotaisItens();
+}
+
+function atualizarFreteVendedora(valor){
+  // Atualiza o campo f-frete (usado no objeto venda) sem afetar comissão
+  const frete = parseFloat(valor)||0;
+  const fEl = document.getElementById('f-frete');
+  if(fEl){ fEl.value = frete > 0 ? frete : ''; }
 }
 
 function resetItens(){
