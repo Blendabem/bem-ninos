@@ -2744,19 +2744,20 @@ function mostrarResumoVenda(venda){
     linhas.push('- '+venda.prod+': R$'+Number(venda.val).toFixed(2).replace('.',','));
   }
 
-  // Entrega — somada ao total
-  const uber    = Number(venda.uber||0);
-  const frete   = Number(venda.frete||0);
-  const entrega = uber + frete;
+  // Entrega — pega do campo frete-vend (vendedora) ou uber+frete (dono)
+  var freteVend = parseFloat(document.getElementById('f-frete-vend')?.value)||0;
+  var uber  = Number(venda.uber||0);
+  var frete = Number(venda.frete||0) || freteVend;
+  var entrega = uber + frete;
   if(entrega > 0){
     linhas.push('');
     linhas.push('Entrega: R$'+entrega.toFixed(2).replace('.',','));
   }
 
-  // Total em negrito no WhatsApp
-  const totalBruto = Number(venda.val) + entrega;
+  // Total em negrito — * no início E no final da frase completa
+  var totalBruto = Number(venda.val) + entrega;
   linhas.push('');
-  linhas.push('*Total: R$'+totalBruto.toFixed(2).replace('.',','+'*'));
+  linhas.push('*Total: R$'+totalBruto.toFixed(2).replace('.',',')+' *');
 
   const texto = linhas.join('\n');
   document.getElementById('resumoVendaTexto').textContent = texto;
