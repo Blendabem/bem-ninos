@@ -1902,7 +1902,9 @@ async function registrarVenda(){
     const totalC=custo+emb+taxaVal+vend+outros;
     Object.assign(venda,{ custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:val-totalC });
   } else {
-    Object.assign(venda,{ custo:0,emb:0,taxaPct:0,taxaVal:0,uber:0,frete:0,vend:0,outros:0,totalC:0,lucro:0 });
+    // Vendedora — capturar frete antes de limpar o form
+    const freteVend = parseFloat(document.getElementById('f-frete-vend')?.value)||0;
+    Object.assign(venda,{ custo:0,emb:0,taxaPct:0,taxaVal:0,uber:0,frete:freteVend,vend:0,outros:0,totalC:0,lucro:0 });
   }
 
   // limpar form
@@ -2690,9 +2692,12 @@ function toggleVendedora1(){
   if(comBox) comBox.style.display = vendaVendedora1 ? 'block' : 'none';
 
   if(vendaVendedora1){
-    // Auto-calcular 5% sobre o valor total
+    // Auto-calcular % sobre o valor SEM frete (frete é do cliente)
     const val = getN('f-val') || getN('f-val-v');
-    const comissaoAuto = Math.round(val * (COMISSAO_PCT/100) * 100)/100;
+    const freteVend = parseFloat(document.getElementById('f-frete-vend')?.value)||0;
+    const frete = getN('f-frete') || freteVend;
+    const valSemFrete = Math.max(0, val - frete);
+    const comissaoAuto = Math.round(valSemFrete * (COMISSAO_PCT/100) * 100)/100;
     const comissaoEl = document.getElementById('f-comissao-vend');
     if(comissaoEl) comissaoEl.value = comissaoAuto > 0 ? comissaoAuto : '';
     // Atualiza f-vend se dono
@@ -2712,7 +2717,10 @@ function toggleVendedora1(){
 function recalcularComissao(pct){
   const p = parseFloat(pct)||COMISSAO_PCT;
   const val = getN('f-val') || getN('f-val-v');
-  const nova = Math.round(val*(p/100)*100)/100;
+  const freteVend = parseFloat(document.getElementById('f-frete-vend')?.value)||0;
+  const frete = getN('f-frete') || freteVend;
+  const valSemFrete = Math.max(0, val - frete);
+  const nova = Math.round(valSemFrete*(p/100)*100)/100;
   const comissaoEl = document.getElementById('f-comissao-vend');
   if(comissaoEl) comissaoEl.value = nova > 0 ? nova : '';
   const fvend = document.getElementById('f-vend');
