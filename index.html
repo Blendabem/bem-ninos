@@ -567,8 +567,8 @@ textarea{resize:none;height:60px}
                 <option value="Outro">Outro</option>
               </select>
             </div>
-            <!-- Custo = soma automática dos custos da venda -->
-            <div style="background:#fff8e0;border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center">
+            <!-- Custo = soma automática — só dono vê -->
+            <div class="dono-only" style="background:#fff8e0;border-radius:10px;padding:11px 14px;display:flex;justify-content:space-between;align-items:center">
               <div>
                 <div style="font-size:12px;font-weight:800;color:#b08000">💸 Custo</div>
                 <div style="font-size:10px;color:#b08000;font-weight:600">Soma: peça + emb + cartão + uber + frete + vend + outros</div>
@@ -931,12 +931,36 @@ textarea{resize:none;height:60px}
         <div class="meta-bg"><div class="meta-fill" id="mb-lucro" style="background:var(--laranja);width:0%"></div></div>
         <div class="meta-info"><span id="mv-lucro">R$ 0</span> de <strong id="mg-lucro">R$ 2.000</strong></div>
       </div>
-      <div class="toggle-link" onclick="document.getElementById('cfgMetas').classList.toggle('open')">⚙️ Editar Metas ▾</div>
+      <div class="toggle-link" onclick="(function(){
+  const el = document.getElementById('cfgMetas');
+  el.classList.toggle('open');
+  if(el.classList.contains('open')){
+    // Mostrar valores atuais formatados
+    const fatEl = document.getElementById('mi-fat-atual');
+    const pedEl = document.getElementById('mi-ped-atual');
+    const lucEl = document.getElementById('mi-lucro-atual');
+    if(fatEl) fatEl.textContent = metas.fat ? 'Atual: '+brl(metas.fat) : '';
+    if(pedEl) pedEl.textContent = metas.ped ? 'Atual: '+metas.ped+' pedidos' : '';
+    if(lucEl) lucEl.textContent = metas.lucro ? 'Atual: '+brl(metas.lucro) : '';
+  }
+})()">⚙️ Editar Metas ▾</div>
       <div class="collapsible" id="cfgMetas">
         <div class="form-stack" style="margin-top:10px">
-          <div class="fg"><label>Meta Faturamento (R$)</label><input type="number" id="mi-fat" inputmode="numeric"></div>
-          <div class="fg"><label>Meta Pedidos</label><input type="number" id="mi-ped" inputmode="numeric"></div>
-          <div class="fg"><label>Meta Lucro (R$)</label><input type="number" id="mi-lucro" inputmode="numeric"></div>
+          <div class="fg">
+            <label>Meta Faturamento (R$)</label>
+            <input type="number" id="mi-fat" inputmode="numeric" placeholder="Ex: 5000">
+            <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600" id="mi-fat-atual"></div>
+          </div>
+          <div class="fg">
+            <label>Meta Pedidos</label>
+            <input type="number" id="mi-ped" inputmode="numeric" placeholder="Ex: 30">
+            <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600" id="mi-ped-atual"></div>
+          </div>
+          <div class="fg">
+            <label>Meta Lucro (R$)</label>
+            <input type="number" id="mi-lucro" inputmode="numeric" placeholder="Ex: 2000">
+            <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600" id="mi-lucro-atual"></div>
+          </div>
           <div class="fg"><label>🔐 Alterar Senha do Dono</label><input type="password" id="mi-senha" placeholder="Nova senha"></div>
           <div class="fg"><label>📣 Alterar Senha do Gestor</label><input type="password" id="mi-senha-g" placeholder="Nova senha gestor"></div>
           <div class="fg"><label>👩 Alterar Senha da Vendedora</label><input type="password" id="mi-senha-v" placeholder="Nova senha vendedora"></div>
@@ -2696,35 +2720,40 @@ function recalcularComissao(pct){
 // RESUMO PÓS-VENDA PARA COPIAR
 // ══════════════════════════════════════════
 function mostrarResumoVenda(venda){
-  // Só mostra para vendedora ou se toggle vendedora1 ativo
-  // Monta texto formatado
   let linhas = [];
+
+  // Cabeçalho com _Descrição_ em itálico no WhatsApp
+  linhas.push('_Descrição_');
+  linhas.push('');
 
   // Itens
   if(venda.itens && venda.itens.length){
     venda.itens.forEach(it=>{
       const sub = it.qtd * it.val;
-      const tam = it.tam ? ` T.${it.tam}` : '';
+      const tam = it.tam ? ' T.'+it.tam : '';
       if(it.qtd > 1){
-        linhas.push(`- ${it.qtd}x ${it.prod}${tam}: R$${it.val.toFixed(2).replace('.',',')} x${it.qtd} = R$${sub.toFixed(2).replace('.',',')}`);
+        linhas.push('- '+it.qtd+'x '+it.prod+tam+': R$'+sub.toFixed(2).replace('.',','));
       } else {
-        linhas.push(`- ${it.prod}${tam}: R$${it.val.toFixed(2).replace('.',',')}`);
+        linhas.push('- '+it.prod+tam+': R$'+it.val.toFixed(2).replace('.',','));
       }
     });
   } else {
-    linhas.push(`- ${venda.prod}: R$${Number(venda.val).toFixed(2).replace('.',',')}`);
+    linhas.push('- '+venda.prod+': R$'+Number(venda.val).toFixed(2).replace('.',','));
   }
 
-  const uber  = Number(venda.uber||0);
-  const frete = Number(venda.frete||0);
+  // Entrega — somada ao total
+  const uber    = Number(venda.uber||0);
+  const frete   = Number(venda.frete||0);
   const entrega = uber + frete;
   if(entrega > 0){
-    linhas.push(`
-Entrega: R$${entrega.toFixed(2).replace('.',',')}`);
+    linhas.push('');
+    linhas.push('Entrega: R$'+entrega.toFixed(2).replace('.',','));
   }
 
+  // Total em negrito no WhatsApp
   const totalBruto = Number(venda.val) + entrega;
-  linhas.push('\nTotal: R$'+totalBruto.toFixed(2).replace('.',','));
+  linhas.push('');
+  linhas.push('*Total: R$'+totalBruto.toFixed(2).replace('.',','+'*'));
 
   const texto = linhas.join('\n');
   document.getElementById('resumoVendaTexto').textContent = texto;
