@@ -663,8 +663,36 @@ textarea{resize:none;height:60px}
           </div>
           <div class="fg"><label>📝 Detalhes / Observações</label><input id="p-detalhes" type="text" placeholder="Ex: Lavável, secagem rápida, botões frontais"></div>
           <div class="form-row">
+            <div class="fg">
+              <label>👗 Uso</label>
+              <select id="p-uso">
+                <option value="">Selecione...</option>
+                <option value="Dia a dia">Dia a dia</option>
+                <option value="Passeio">Passeio</option>
+                <option value="Ambos">Ambos</option>
+              </select>
+            </div>
+          </div>
+          <div class="fg">
+            <label>🎂 Idades e Quantidades</label>
+            <div id="p-idades-box" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px">
+              <div id="p-idade-wrap-1" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('1')"><input type="checkbox" id="p-idade-1" value="1" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">1</span><input id="p-qtd-idade-1" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-2" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('2')"><input type="checkbox" id="p-idade-2" value="2" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">2</span><input id="p-qtd-idade-2" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-3" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('3')"><input type="checkbox" id="p-idade-3" value="3" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">3</span><input id="p-qtd-idade-3" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-4" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('4')"><input type="checkbox" id="p-idade-4" value="4" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">4</span><input id="p-qtd-idade-4" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-6" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('6')"><input type="checkbox" id="p-idade-6" value="6" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">6</span><input id="p-qtd-idade-6" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-8" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('8')"><input type="checkbox" id="p-idade-8" value="8" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">8</span><input id="p-qtd-idade-8" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-10" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('10')"><input type="checkbox" id="p-idade-10" value="10" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">10</span><input id="p-qtd-idade-10" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-12" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('12')"><input type="checkbox" id="p-idade-12" value="12" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">12</span><input id="p-qtd-idade-12" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-14" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('14')"><input type="checkbox" id="p-idade-14" value="14" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">14</span><input id="p-qtd-idade-14" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-16" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('16')"><input type="checkbox" id="p-idade-16" value="16" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">16</span><input id="p-qtd-idade-16" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+            </div>
+            <div id="p-qtd-total-display" style="font-size:11px;font-weight:800;color:var(--verde);margin-top:5px"></div>
+            <input type="hidden" id="p-qtd-estoque" value="0">
+          </div>
+          <div class="form-row">
             <div class="fg"><label>🎨 Cores Disponíveis</label><input id="p-cores" type="text" placeholder="Ex: Azul, Vermelho, Branco"></div>
-            <div class="fg"><label>📦 Qtd. em Estoque</label><input id="p-qtd-estoque" type="number" placeholder="0" inputmode="numeric" min="0"></div>
+
           </div>
 
           <!-- MODO: calculadora ou valor manual -->
@@ -753,6 +781,34 @@ textarea{resize:none;height:60px}
         </div>
       </div>
 
+      <!-- RESUMO VALOR DE ESTOQUE -->
+      <div class="card" id="resumoEstoqueCard" style="margin-bottom:12px">
+        <div class="card-title"><span class="dot" style="background:var(--azul)"></span>📊 Resumo do Estoque</div>
+        <div id="resumoEstoqueBox" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#f7f8fd;border-radius:10px;padding:12px 14px">
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--sub);text-transform:uppercase">💰 Valor a Preço de Custo</div>
+              <div style="font-size:11px;color:var(--sub);margin-top:2px">Soma do custo de todos os produtos</div>
+            </div>
+            <div id="estoque-valor-custo" style="font-size:18px;font-weight:900;color:var(--azul)">R$ 0,00</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#e8f9e0;border-radius:10px;padding:12px 14px">
+            <div>
+              <div style="font-size:12px;font-weight:800;color:#3a7a1a;text-transform:uppercase">📈 Valor a Preço de Venda</div>
+              <div style="font-size:11px;color:#5a9a3a;margin-top:2px">Potencial de faturamento do estoque</div>
+            </div>
+            <div id="estoque-valor-venda" style="font-size:18px;font-weight:900;color:var(--verde)">R$ 0,00</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;background:#EEF2FF;border-radius:10px;padding:12px 14px">
+            <div>
+              <div style="font-size:12px;font-weight:800;color:var(--azul);text-transform:uppercase">📦 Total de Peças</div>
+              <div style="font-size:11px;color:var(--sub);margin-top:2px">Quantidade cadastrada em estoque</div>
+            </div>
+            <div id="estoque-total-pecas" style="font-size:18px;font-weight:900;color:var(--azul)">0</div>
+          </div>
+        </div>
+      </div>
+
       <!-- PRECIFICAÇÕES SALVAS -->
       <div class="card">
         <div class="card-title"><span class="dot" style="background:var(--verde)"></span>Produtos Precificados</div>
@@ -836,12 +892,33 @@ textarea{resize:none;height:60px}
       <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:800;color:#1a1d3a;margin-bottom:3px;letter-spacing:-.3px">🏷️ Lista de Preços — Bem Niños</div>
       <div style="font-size:12px;color:#64748B;font-weight:600">Produtos disponíveis com preço de venda</div>
     </div>
-    <!-- Barra de pesquisa -->
-    <div style="position:relative;margin-bottom:12px">
+    <!-- Filtros -->
+    <div style="position:relative;margin-bottom:8px">
       <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none">🔍</span>
       <input id="catalogoBusca" type="text" placeholder="Pesquisar produto..."
         oninput="renderCatalogo()"
         style="width:100%;padding:11px 12px 11px 38px;border-radius:12px;border:2px solid var(--borda);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;background:#fff;outline:none;-webkit-appearance:none">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select id="filtroUso" onchange="renderCatalogo()" style="flex:1;padding:9px 10px;border-radius:10px;border:2px solid var(--borda);font-size:13px;font-weight:700;background:#fff;color:#1a1d3a;outline:none;-webkit-appearance:none">
+        <option value="">👗 Todos os usos</option>
+        <option value="Dia a dia">Dia a dia</option>
+        <option value="Passeio">Passeio</option>
+        <option value="Ambos">Ambos</option>
+      </select>
+      <select id="filtroFaixa" onchange="renderCatalogo()" style="flex:1;padding:9px 10px;border-radius:10px;border:2px solid var(--borda);font-size:13px;font-weight:700;background:#fff;color:#1a1d3a;outline:none;-webkit-appearance:none">
+        <option value="">🎂 Todas as idades</option>
+        <option value="1">1 anos</option>
+        <option value="2">2 anos</option>
+        <option value="3">3 anos</option>
+        <option value="4">4 anos</option>
+        <option value="6">6 anos</option>
+        <option value="8">8 anos</option>
+        <option value="10">10 anos</option>
+        <option value="12">12 anos</option>
+        <option value="14">14 anos</option>
+        <option value="16">16 anos</option>
+      </select>
     </div>
     <div id="catalogoGrid"></div>
   </section>
@@ -1979,6 +2056,36 @@ async function salvarEstoque(){
   if(okEst !== false){ setLastSaved(); showToast('✅ Compra de estoque salva!'); }
 }
 
+let _editEstoqueId = null;
+
+function editarEstoqueItem(id){
+  const e = estoqueDB.find(x=>String(x.id)===String(id));
+  if(!e) return;
+  _editEstoqueId = id;
+  // Preencher form
+  const ids = { 'e-local':e.local,'e-desc':e.desc,'e-qtd':e.qtd,'e-valor':e.valor,'e-frete':e.frete||0,'e-obs':e.obs||'' };
+  if(e.data) ids['e-data'] = e.data;
+  Object.entries(ids).forEach(([id,val])=>{ const el=document.getElementById(id); if(el) el.value=val||''; });
+  document.getElementById('e-local').scrollIntoView({behavior:'smooth',block:'center'});
+  showToast('✏️ Editando compra: '+e.local,'#3BB8E8');
+}
+
+async function excluirEstoqueItem(id){
+  if(!confirm('Excluir esta compra de estoque?')) return;
+  try {
+    const {db, doc, deleteDoc} = window._fb;
+    await deleteDoc(doc(db,'estoque',String(id)));
+    estoqueDB = estoqueDB.filter(x=>String(x.id)!==String(id));
+    renderEstoque();
+    showToast('🗑️ Compra excluída!','#F26522');
+  } catch(e){
+    // fallback localStorage
+    estoqueDB = estoqueDB.filter(x=>String(x.id)!==String(id));
+    renderEstoque();
+    showToast('🗑️ Compra excluída!','#F26522');
+  }
+}
+
 function renderEstoque(){
   const periodo = estoqueDB.filter(e=>e.mes===dpKey());
   const el=document.getElementById('estoqueList');
@@ -2007,6 +2114,16 @@ function renderEstoque(){
         ${e.frete?`<span class="est-chip">Frete: <span>${brl(e.frete)}</span></span>`:''}
       </div>
       ${e.obs?`<div style="font-size:11px;color:var(--sub);margin-top:6px">📝 ${e.obs}</div>`:''}
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button onclick="editarEstoqueItem('${e.id}')"
+          style="flex:1;padding:7px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">
+          ✏️ Editar
+        </button>
+        <button onclick="excluirEstoqueItem('${e.id}')"
+          style="flex:1;padding:7px;background:#fee2e2;color:#dc2626;border:1.5px solid #fca5a5;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">
+          🗑️ Excluir
+        </button>
+      </div>
     </div>
   `).join('');
   tr.style.display='flex';
@@ -2096,7 +2213,20 @@ async function salvarPrecificacao(){
   const tamanhos = document.getElementById('p-tamanhos')?.value.trim()||'';
   const detalhes = document.getElementById('p-detalhes')?.value.trim()||'';
   const cores     = document.getElementById('p-cores')?.value.trim()||'';
-  const qtdEstoque= parseInt(document.getElementById('p-qtd-estoque')?.value)||0;
+  // Quantidade por idade
+  const qtdPorIdade = {};
+  let qtdEstoqueTotal = 0;
+  const qtdI1 = parseInt(document.getElementById('p-qtd-idade-1')?.value)||0; if(qtdI1>0){ qtdPorIdade['1']=qtdI1; qtdEstoqueTotal+=qtdI1; }
+  const qtdI2 = parseInt(document.getElementById('p-qtd-idade-2')?.value)||0; if(qtdI2>0){ qtdPorIdade['2']=qtdI2; qtdEstoqueTotal+=qtdI2; }
+  const qtdI3 = parseInt(document.getElementById('p-qtd-idade-3')?.value)||0; if(qtdI3>0){ qtdPorIdade['3']=qtdI3; qtdEstoqueTotal+=qtdI3; }
+  const qtdI4 = parseInt(document.getElementById('p-qtd-idade-4')?.value)||0; if(qtdI4>0){ qtdPorIdade['4']=qtdI4; qtdEstoqueTotal+=qtdI4; }
+  const qtdI6 = parseInt(document.getElementById('p-qtd-idade-6')?.value)||0; if(qtdI6>0){ qtdPorIdade['6']=qtdI6; qtdEstoqueTotal+=qtdI6; }
+  const qtdI8 = parseInt(document.getElementById('p-qtd-idade-8')?.value)||0; if(qtdI8>0){ qtdPorIdade['8']=qtdI8; qtdEstoqueTotal+=qtdI8; }
+  const qtdI10 = parseInt(document.getElementById('p-qtd-idade-10')?.value)||0; if(qtdI10>0){ qtdPorIdade['10']=qtdI10; qtdEstoqueTotal+=qtdI10; }
+  const qtdI12 = parseInt(document.getElementById('p-qtd-idade-12')?.value)||0; if(qtdI12>0){ qtdPorIdade['12']=qtdI12; qtdEstoqueTotal+=qtdI12; }
+  const qtdI14 = parseInt(document.getElementById('p-qtd-idade-14')?.value)||0; if(qtdI14>0){ qtdPorIdade['14']=qtdI14; qtdEstoqueTotal+=qtdI14; }
+  const qtdI16 = parseInt(document.getElementById('p-qtd-idade-16')?.value)||0; if(qtdI16>0){ qtdPorIdade['16']=qtdI16; qtdEstoqueTotal+=qtdI16; }
+  const qtdEstoque = qtdEstoqueTotal || parseInt(document.getElementById('p-qtd-estoque')?.value)||0;
   if(!nome){ showToast('⚠️ Informe o nome do produto!','#F26522'); return; }
 
   // Pega URL da foto conforme modo
@@ -2109,7 +2239,7 @@ async function salvarPrecificacao(){
     const precoFinal=getN('p-val-manual');
     const custoManual=getN('p-custo-manual');
     if(!precoFinal){ showToast('⚠️ Informe o preço final!','#F26522'); return; }
-    obj={id:Date.now(),nome,modoManual:true,compra:custoManual,despesa:0,salario:0,cartaoPct:0,impostoPct:0,frete:0,brinde:0,comissaoPct:0,lucroPct:0,semLucro:custoManual,precoFinal,foto};
+    obj={id:_editPrecId||Date.now(),nome,modoManual:true,compra:custoManual,despesa:0,salario:0,cartaoPct:0,impostoPct:0,frete:0,brinde:0,comissaoPct:0,lucroPct:0,semLucro:custoManual,precoFinal,foto};
   } else {
     const compra=getN('p-compra'), despesa=getN('p-despesa'), salario=getN('p-salario');
     const cartaoPct=getN('p-cartao'), impostoPct=getN('p-imposto'), frete=getN('p-frete');
@@ -2118,12 +2248,31 @@ async function salvarPrecificacao(){
     const totalPct=(cartaoPct+impostoPct+comissaoPct)/100;
     const semLucro=totalPct<1?custoBase/(1-totalPct):custoBase;
     const precoFinal=semLucro*(1+lucroPct/100);
-    obj={id:Date.now(),nome,modoManual:false,compra,despesa,salario,cartaoPct,impostoPct,frete,brinde,comissaoPct,lucroPct,semLucro,precoFinal,foto};
+    obj={id:_editPrecId||Date.now(),nome,modoManual:false,compra,despesa,salario,cartaoPct,impostoPct,frete,brinde,comissaoPct,lucroPct,semLucro,precoFinal,foto};
   }
 
-  obj.tecido=tecido; obj.tamanhos=tamanhos; obj.detalhes=detalhes; obj.cores=cores; obj.qtdEstoque=qtdEstoque;
-  const idx=precDB.findIndex(p=>p.nome===nome);
+  obj.tecido=tecido; obj.tamanhos=tamanhos; obj.detalhes=detalhes; obj.cores=cores; obj.qtdEstoque=qtdEstoque; obj.qtdPorIdade=qtdPorIdade;
+  obj.uso   = document.getElementById('p-uso')?.value||'';
+  // Salvar idades selecionadas como array
+  const idadesSel = [];
+  if(document.getElementById('p-idade-1')?.checked) idadesSel.push('1');
+  if(document.getElementById('p-idade-2')?.checked) idadesSel.push('2');
+  if(document.getElementById('p-idade-3')?.checked) idadesSel.push('3');
+  if(document.getElementById('p-idade-4')?.checked) idadesSel.push('4');
+  if(document.getElementById('p-idade-6')?.checked) idadesSel.push('6');
+  if(document.getElementById('p-idade-8')?.checked) idadesSel.push('8');
+  if(document.getElementById('p-idade-10')?.checked) idadesSel.push('10');
+  if(document.getElementById('p-idade-12')?.checked) idadesSel.push('12');
+  if(document.getElementById('p-idade-14')?.checked) idadesSel.push('14');
+  if(document.getElementById('p-idade-16')?.checked) idadesSel.push('16');
+  obj.idades = idadesSel;
+  obj.faixa = idadesSel.join(','); // compatibilidade
+  // Usar ID para evitar duplicata (quando editando)
+  const idx = _editPrecId
+    ? precDB.findIndex(p=>String(p.id)===String(_editPrecId))
+    : precDB.findIndex(p=>p.nome===nome);
   if(idx>=0) precDB[idx]=obj; else precDB.unshift(obj);
+  _editPrecId = null; // limpar após salvar
   // Salva no Firebase (fonte principal) e localStorage como cache
   localStorage.setItem('bn_prec',JSON.stringify(precDB));
   const btnPrec = document.querySelector('[onclick="salvarPrecificacao()"]');
@@ -2132,7 +2281,7 @@ async function salvarPrecificacao(){
   if(btnPrec){ btnPrec.disabled=false; btnPrec.style.opacity=''; }
   if(okPrec !== false) setLastSaved();
   // Limpar TODOS os campos do formulário
-  ['p-nome','p-tecido','p-tamanhos','p-detalhes','p-cores','p-qtd-estoque',
+  ['p-nome','p-tecido','p-tamanhos','p-detalhes','p-cores','p-qtd-estoque','p-uso',
    'p-foto-url','p-foto-url-manual',
    'p-val-manual','p-custo-manual',
    'p-compra','p-despesa','p-salario','p-cartao','p-imposto',
@@ -2140,6 +2289,18 @@ async function salvarPrecificacao(){
     const el=document.getElementById(id);
     if(el) el.value='';
   });
+  // Limpar checkboxes e qtd de idade
+  const cb1=document.getElementById('p-idade-1'); if(cb1) cb1.checked=false; const qr1=document.getElementById('p-qtd-idade-1'); if(qr1) qr1.value='';
+  const cb2=document.getElementById('p-idade-2'); if(cb2) cb2.checked=false; const qr2=document.getElementById('p-qtd-idade-2'); if(qr2) qr2.value='';
+  const cb3=document.getElementById('p-idade-3'); if(cb3) cb3.checked=false; const qr3=document.getElementById('p-qtd-idade-3'); if(qr3) qr3.value='';
+  const cb4=document.getElementById('p-idade-4'); if(cb4) cb4.checked=false; const qr4=document.getElementById('p-qtd-idade-4'); if(qr4) qr4.value='';
+  const cb6=document.getElementById('p-idade-6'); if(cb6) cb6.checked=false; const qr6=document.getElementById('p-qtd-idade-6'); if(qr6) qr6.value='';
+  const cb8=document.getElementById('p-idade-8'); if(cb8) cb8.checked=false; const qr8=document.getElementById('p-qtd-idade-8'); if(qr8) qr8.value='';
+  const cb10=document.getElementById('p-idade-10'); if(cb10) cb10.checked=false; const qr10=document.getElementById('p-qtd-idade-10'); if(qr10) qr10.value='';
+  const cb12=document.getElementById('p-idade-12'); if(cb12) cb12.checked=false; const qr12=document.getElementById('p-qtd-idade-12'); if(qr12) qr12.value='';
+  const cb14=document.getElementById('p-idade-14'); if(cb14) cb14.checked=false; const qr14=document.getElementById('p-qtd-idade-14'); if(qr14) qr14.value='';
+  const cb16=document.getElementById('p-idade-16'); if(cb16) cb16.checked=false; const qr16=document.getElementById('p-qtd-idade-16'); if(qr16) qr16.value='';
+  atualizarQtdIdades();
   ['fotoPreviewCalcWrap','fotoPreviewManualWrap'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
   });
@@ -2153,7 +2314,41 @@ async function salvarPrecificacao(){
   showToast('💾 Produto salvo!');
 }
 
+function calcResumoEstoque(){
+  const elCusto = document.getElementById('estoque-valor-custo');
+  const elVenda = document.getElementById('estoque-valor-venda');
+  const elPecas = document.getElementById('estoque-total-pecas');
+  if(!elCusto || !elVenda || !elPecas) return;
+
+  let totalCusto = 0;
+  let totalVenda = 0;
+  let totalPecas = 0;
+
+  precDB.forEach(p=>{
+    const custo = parseFloat(p.compra)||0;
+    const venda = parseFloat(p.precoFinal)||0;
+    // Usar qtd por idade se disponível, senão qtdEstoque geral
+    if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).length > 0){
+      const qtdTotal = Object.values(p.qtdPorIdade).reduce((s,v)=>s+(parseInt(v)||0),0);
+      totalCusto += custo * qtdTotal;
+      totalVenda += venda * qtdTotal;
+      totalPecas += qtdTotal;
+    } else {
+      const qtd = parseInt(p.qtdEstoque)||0;
+      if(qtd <= 0) return;
+      totalCusto += custo * qtd;
+      totalVenda += venda * qtd;
+      totalPecas += qtd;
+    }
+  });
+
+  elCusto.textContent = brl(totalCusto);
+  elVenda.textContent = brl(totalVenda);
+  elPecas.textContent = totalPecas;
+}
+
 function renderPrecSalvos(){
+  calcResumoEstoque();
   const el=document.getElementById('precSalvos');
   if(!precDB.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Nenhum produto ainda</strong><br>Use a calculadora acima para precificar</div>'; return; }
   el.innerHTML=precDB.map((p,i)=>`
@@ -2177,6 +2372,159 @@ function renderPrecSalvos(){
       </div>
     </div>
   `).join('');
+}
+
+function toggleIdade(a){
+  const cb = document.getElementById('p-idade-'+a);
+  if(cb){ cb.checked = !cb.checked; atualizarQtdIdades(); }
+}
+
+function toggleIdade(a){
+  const cb = document.getElementById('p-idade-'+a);
+  if(cb){ cb.checked = !cb.checked; atualizarQtdIdades(); }
+}
+
+function atualizarQtdIdades(){
+  const cb1 = document.getElementById('p-idade-1');
+  const wrap1 = document.getElementById('p-idade-wrap-1');
+  const inp1 = document.getElementById('p-qtd-idade-1');
+  if(cb1 && wrap1 && inp1){
+    if(cb1.checked){
+      wrap1.style.background='#dce8ff'; wrap1.style.borderColor='var(--azul)';
+      inp1.style.display='inline-block';
+    } else {
+      wrap1.style.background='#f0f4ff'; wrap1.style.borderColor='#D8DEFF';
+      inp1.style.display='none'; inp1.value='';
+    }
+  }
+  const cb2 = document.getElementById('p-idade-2');
+  const wrap2 = document.getElementById('p-idade-wrap-2');
+  const inp2 = document.getElementById('p-qtd-idade-2');
+  if(cb2 && wrap2 && inp2){
+    if(cb2.checked){
+      wrap2.style.background='#dce8ff'; wrap2.style.borderColor='var(--azul)';
+      inp2.style.display='inline-block';
+    } else {
+      wrap2.style.background='#f0f4ff'; wrap2.style.borderColor='#D8DEFF';
+      inp2.style.display='none'; inp2.value='';
+    }
+  }
+  const cb3 = document.getElementById('p-idade-3');
+  const wrap3 = document.getElementById('p-idade-wrap-3');
+  const inp3 = document.getElementById('p-qtd-idade-3');
+  if(cb3 && wrap3 && inp3){
+    if(cb3.checked){
+      wrap3.style.background='#dce8ff'; wrap3.style.borderColor='var(--azul)';
+      inp3.style.display='inline-block';
+    } else {
+      wrap3.style.background='#f0f4ff'; wrap3.style.borderColor='#D8DEFF';
+      inp3.style.display='none'; inp3.value='';
+    }
+  }
+  const cb4 = document.getElementById('p-idade-4');
+  const wrap4 = document.getElementById('p-idade-wrap-4');
+  const inp4 = document.getElementById('p-qtd-idade-4');
+  if(cb4 && wrap4 && inp4){
+    if(cb4.checked){
+      wrap4.style.background='#dce8ff'; wrap4.style.borderColor='var(--azul)';
+      inp4.style.display='inline-block';
+    } else {
+      wrap4.style.background='#f0f4ff'; wrap4.style.borderColor='#D8DEFF';
+      inp4.style.display='none'; inp4.value='';
+    }
+  }
+  const cb6 = document.getElementById('p-idade-6');
+  const wrap6 = document.getElementById('p-idade-wrap-6');
+  const inp6 = document.getElementById('p-qtd-idade-6');
+  if(cb6 && wrap6 && inp6){
+    if(cb6.checked){
+      wrap6.style.background='#dce8ff'; wrap6.style.borderColor='var(--azul)';
+      inp6.style.display='inline-block';
+    } else {
+      wrap6.style.background='#f0f4ff'; wrap6.style.borderColor='#D8DEFF';
+      inp6.style.display='none'; inp6.value='';
+    }
+  }
+  const cb8 = document.getElementById('p-idade-8');
+  const wrap8 = document.getElementById('p-idade-wrap-8');
+  const inp8 = document.getElementById('p-qtd-idade-8');
+  if(cb8 && wrap8 && inp8){
+    if(cb8.checked){
+      wrap8.style.background='#dce8ff'; wrap8.style.borderColor='var(--azul)';
+      inp8.style.display='inline-block';
+    } else {
+      wrap8.style.background='#f0f4ff'; wrap8.style.borderColor='#D8DEFF';
+      inp8.style.display='none'; inp8.value='';
+    }
+  }
+  const cb10 = document.getElementById('p-idade-10');
+  const wrap10 = document.getElementById('p-idade-wrap-10');
+  const inp10 = document.getElementById('p-qtd-idade-10');
+  if(cb10 && wrap10 && inp10){
+    if(cb10.checked){
+      wrap10.style.background='#dce8ff'; wrap10.style.borderColor='var(--azul)';
+      inp10.style.display='inline-block';
+    } else {
+      wrap10.style.background='#f0f4ff'; wrap10.style.borderColor='#D8DEFF';
+      inp10.style.display='none'; inp10.value='';
+    }
+  }
+  const cb12 = document.getElementById('p-idade-12');
+  const wrap12 = document.getElementById('p-idade-wrap-12');
+  const inp12 = document.getElementById('p-qtd-idade-12');
+  if(cb12 && wrap12 && inp12){
+    if(cb12.checked){
+      wrap12.style.background='#dce8ff'; wrap12.style.borderColor='var(--azul)';
+      inp12.style.display='inline-block';
+    } else {
+      wrap12.style.background='#f0f4ff'; wrap12.style.borderColor='#D8DEFF';
+      inp12.style.display='none'; inp12.value='';
+    }
+  }
+  const cb14 = document.getElementById('p-idade-14');
+  const wrap14 = document.getElementById('p-idade-wrap-14');
+  const inp14 = document.getElementById('p-qtd-idade-14');
+  if(cb14 && wrap14 && inp14){
+    if(cb14.checked){
+      wrap14.style.background='#dce8ff'; wrap14.style.borderColor='var(--azul)';
+      inp14.style.display='inline-block';
+    } else {
+      wrap14.style.background='#f0f4ff'; wrap14.style.borderColor='#D8DEFF';
+      inp14.style.display='none'; inp14.value='';
+    }
+  }
+  const cb16 = document.getElementById('p-idade-16');
+  const wrap16 = document.getElementById('p-idade-wrap-16');
+  const inp16 = document.getElementById('p-qtd-idade-16');
+  if(cb16 && wrap16 && inp16){
+    if(cb16.checked){
+      wrap16.style.background='#dce8ff'; wrap16.style.borderColor='var(--azul)';
+      inp16.style.display='inline-block';
+    } else {
+      wrap16.style.background='#f0f4ff'; wrap16.style.borderColor='#D8DEFF';
+      inp16.style.display='none'; inp16.value='';
+    }
+  }
+  calcTotalQtdIdades();
+}
+
+function calcTotalQtdIdades(){
+  let total = 0;
+  total += parseInt(document.getElementById('p-qtd-idade-1')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-2')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-3')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-4')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-6')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-8')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-10')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-12')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-14')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-16')?.value)||0;
+  const el = document.getElementById('p-qtd-estoque');
+  if(el) el.value = total;
+  // Mostrar total
+  const totEl = document.getElementById('p-qtd-total-display');
+  if(totEl) totEl.textContent = total > 0 ? 'Total: '+total+' peças' : '';
 }
 
 function abrirDetalhe(prodId){
@@ -2208,6 +2556,10 @@ function abrirDetalhe(prodId){
   if(estoqueEl){
     if(qtd === 0){
       estoqueEl.innerHTML = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Sem estoque</span>';
+    } else if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).length > 0){
+      const tags = Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0)
+        .map(([k,v])=>`<span style="background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};padding:3px 10px;border-radius:16px;font-size:12px;font-weight:800;margin:2px">${k} anos: ${v} peça${v>1?'s':''}</span>`).join('');
+      estoqueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px">'+tags+'</div>';
     } else if(qtd <= 3){
       estoqueEl.innerHTML = '<span style="background:#fff7e0;color:#b08000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Apenas '+qtd+' peça'+(qtd>1?'s':'')+' em estoque</span>';
     } else {
@@ -2219,6 +2571,7 @@ function abrirDetalhe(prodId){
   const infos = [];
   if(p.cores)    infos.push({icon:'🎨', label:'Cores disponíveis', valor:p.cores});
   if(p.tamanhos) infos.push({icon:'📐', label:'Tamanhos', valor:p.tamanhos});
+  if(p.idades && p.idades.length) infos.push({icon:'🎂', label:'Idades', valor:p.idades.map(i=>i+' anos').join(' · ')});
   if(p.tecido)   infos.push({icon:'🧵', label:'Tecido', valor:p.tecido});
   if(p.detalhes) infos.push({icon:'📝', label:'Detalhes', valor:p.detalhes});
   if(!p.modoManual && p.compra) infos.push({icon:'🏷️', label:'Custo da peça', valor:brl(p.compra)});
@@ -2243,8 +2596,18 @@ function abrirDetalhe(prodId){
 function renderCatalogo(){
   const el=document.getElementById('catalogoGrid');
   el.className=''; // remove grid, vira lista
-  const busca=(document.getElementById('catalogoBusca')?.value||'').toLowerCase().trim();
-  const lista = busca ? precDB.filter(p=>p.nome.toLowerCase().includes(busca)) : precDB;
+  const busca = (document.getElementById('catalogoBusca')?.value||'').toLowerCase().trim();
+  const filtroUso   = document.getElementById('filtroUso')?.value||'';
+  const filtroFaixa = document.getElementById('filtroFaixa')?.value||'';
+  const lista = precDB.filter(p=>{
+    if(busca && !p.nome.toLowerCase().includes(busca)) return false;
+    if(filtroUso && p.uso && p.uso !== filtroUso && p.uso !== 'Ambos') return false;
+    if(filtroFaixa){
+      const idadesP = p.idades || (p.faixa ? p.faixa.split(',') : []);
+      if(idadesP.length > 0 && !idadesP.includes(filtroFaixa)) return false;
+    }
+    return true;
+  });
   if(!precDB.length){
     el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Lista de preços vazia</strong><br>Adicione produtos na aba Estoque → Precificação</div>';
     return;
@@ -2270,7 +2633,16 @@ function renderCatalogo(){
               <div style="font-size:14px;font-weight:800;color:var(--texto)">${p.nome}</div>
               ${p.tamanhos ? `<div style="font-size:11px;color:var(--sub);margin-top:2px">📐 ${p.tamanhos}</div>` : ''}
             ${p.cores ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">🎨 ${p.cores}</div>` : ''}
-            ${(p.qtdEstoque!==undefined) ? `<div style="margin-top:3px"><span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;${p.qtdEstoque===0?'background:#fee2e2;color:#dc2626':p.qtdEstoque<=3?'background:#fff7e0;color:#b08000':'background:#e8f9e0;color:#5BBF2A'}">${p.qtdEstoque===0?'⚠️ Sem estoque':p.qtdEstoque<=3?'⚠️ '+p.qtdEstoque+' restantes':'✅ '+p.qtdEstoque+' em estoque'}</span></div>` : ''}
+            ${p.uso ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">👗 ${p.uso}</div>` : ''}
+            ${(p.idades && p.idades.length) ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">🎂 ${p.idades.map(i=>i+' anos').join(' · ')}</div>` : p.faixa ? `<div style="font-size:11px;color:var(--sub);margin-top:1px">🎂 ${p.faixa}</div>` : ''}
+            ${(p.qtdEstoque!==undefined) ? `<div style="margin-top:3px">
+              ${p.qtdEstoque===0
+                ? '<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#dc2626">⚠️ Sem estoque</span>'
+                : (p.qtdPorIdade && Object.keys(p.qtdPorIdade).length
+                  ? Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0).map(([k,v])=>`<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};margin-right:3px">${k}a: ${v}</span>`).join('')
+                  : `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:${p.qtdEstoque<=3?'#fff7e0':'#e8f9e0'};color:${p.qtdEstoque<=3?'#b08000':'#2a7a00'}">✅ ${p.qtdEstoque} peças</span>`)
+              }
+            </div>` : ''}
             </div>
             <div style="text-align:right;flex-shrink:0;margin-left:12px">
               <div style="font-size:17px;font-weight:900;color:var(--azul)">${brl(p.precoFinal)}</div>
@@ -2318,6 +2690,7 @@ function editarPrec(prodId){
   if(!p){ showToast('⚠️ Produto não encontrado','#F26522'); return; }
 
   // Preenche nome
+  _editPrecId = p.id; // salvar ID para usar no update
   document.getElementById('p-nome').value = p.nome;
   const tEl = document.getElementById('p-tecido');
   const tamEl = document.getElementById('p-tamanhos');
@@ -2329,6 +2702,21 @@ function editarPrec(prodId){
   if(detEl) detEl.value = p.detalhes||'';
   if(coresEl) coresEl.value = p.cores||'';
   if(qtdEl) qtdEl.value = p.qtdEstoque||0;
+  const usoEl = document.getElementById('p-uso');
+  const faixaEl = document.getElementById('p-faixa');
+  if(usoEl) usoEl.value = p.uso||'';
+  // Preencher checkboxes de idade
+  const idadesP = p.idades || (p.faixa ? p.faixa.split(',') : []);
+  const cbE1=document.getElementById('p-idade-1'); if(cbE1) cbE1.checked=idadesP.includes('1');
+  const cbE2=document.getElementById('p-idade-2'); if(cbE2) cbE2.checked=idadesP.includes('2');
+  const cbE3=document.getElementById('p-idade-3'); if(cbE3) cbE3.checked=idadesP.includes('3');
+  const cbE4=document.getElementById('p-idade-4'); if(cbE4) cbE4.checked=idadesP.includes('4');
+  const cbE6=document.getElementById('p-idade-6'); if(cbE6) cbE6.checked=idadesP.includes('6');
+  const cbE8=document.getElementById('p-idade-8'); if(cbE8) cbE8.checked=idadesP.includes('8');
+  const cbE10=document.getElementById('p-idade-10'); if(cbE10) cbE10.checked=idadesP.includes('10');
+  const cbE12=document.getElementById('p-idade-12'); if(cbE12) cbE12.checked=idadesP.includes('12');
+  const cbE14=document.getElementById('p-idade-14'); if(cbE14) cbE14.checked=idadesP.includes('14');
+  const cbE16=document.getElementById('p-idade-16'); if(cbE16) cbE16.checked=idadesP.includes('16');
 
   if(p.modoManual){
     // Modo manual
@@ -3614,4 +4002,18 @@ function removerFundoBranco(imgEl, tolerancia=30){
 })();
 </script>
 </body>
-</html>
+</html
+  // Preencher qtd por idade
+  if(p.qtdPorIdade){
+    const qEl1=document.getElementById('p-qtd-idade-1'); if(qEl1) qEl1.value=p.qtdPorIdade['1']||'';
+    const qEl2=document.getElementById('p-qtd-idade-2'); if(qEl2) qEl2.value=p.qtdPorIdade['2']||'';
+    const qEl3=document.getElementById('p-qtd-idade-3'); if(qEl3) qEl3.value=p.qtdPorIdade['3']||'';
+    const qEl4=document.getElementById('p-qtd-idade-4'); if(qEl4) qEl4.value=p.qtdPorIdade['4']||'';
+    const qEl6=document.getElementById('p-qtd-idade-6'); if(qEl6) qEl6.value=p.qtdPorIdade['6']||'';
+    const qEl8=document.getElementById('p-qtd-idade-8'); if(qEl8) qEl8.value=p.qtdPorIdade['8']||'';
+    const qEl10=document.getElementById('p-qtd-idade-10'); if(qEl10) qEl10.value=p.qtdPorIdade['10']||'';
+    const qEl12=document.getElementById('p-qtd-idade-12'); if(qEl12) qEl12.value=p.qtdPorIdade['12']||'';
+    const qEl14=document.getElementById('p-qtd-idade-14'); if(qEl14) qEl14.value=p.qtdPorIdade['14']||'';
+    const qEl16=document.getElementById('p-qtd-idade-16'); if(qEl16) qEl16.value=p.qtdPorIdade['16']||'';
+  }
+  atualizarQtdIdades();>
