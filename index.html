@@ -659,7 +659,7 @@ textarea{resize:none;height:60px}
           <div class="fg"><label>📛 Nome do Produto</label><input id="p-nome" type="text" placeholder="Ex: Camiseta Polo Azul T8"></div>
           <div class="form-row">
             <div class="fg"><label>🧵 Tecido / Composição</label><input id="p-tecido" type="text" placeholder="Ex: 100% Algodão"></div>
-            <div class="fg"><label>📐 Tamanhos Disponíveis</label><input id="p-tamanhos" type="text" placeholder="Ex: 1,2,4,6,8"></div>
+            
           </div>
           <div class="fg"><label>📝 Detalhes / Observações</label><input id="p-detalhes" type="text" placeholder="Ex: Lavável, secagem rápida, botões frontais"></div>
           <div class="form-row">
@@ -686,6 +686,12 @@ textarea{resize:none;height:60px}
               <div id="p-idade-wrap-12" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('12')"><input type="checkbox" id="p-idade-12" value="12" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">12</span><input id="p-qtd-idade-12" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
               <div id="p-idade-wrap-14" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('14')"><input type="checkbox" id="p-idade-14" value="14" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">14</span><input id="p-qtd-idade-14" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
               <div id="p-idade-wrap-16" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('16')"><input type="checkbox" id="p-idade-16" value="16" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">16</span><input id="p-qtd-idade-16" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div style="width:100%;height:1px;background:#E8EAF6;margin:4px 0"></div>
+              <div style="width:100%;font-size:10px;font-weight:800;color:var(--sub);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px">Tamanhos</div>
+              <div id="p-idade-wrap-P" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('P')"><input type="checkbox" id="p-idade-P" value="P" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">P</span><input id="p-qtd-idade-P" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-M" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('M')"><input type="checkbox" id="p-idade-M" value="M" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">M</span><input id="p-qtd-idade-M" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-G" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('G')"><input type="checkbox" id="p-idade-G" value="G" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">G</span><input id="p-qtd-idade-G" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
+              <div id="p-idade-wrap-GG" style="display:inline-flex;align-items:center;gap:3px;background:#f0f4ff;border:1.5px solid #D8DEFF;border-radius:8px;padding:4px 8px;cursor:pointer" onclick="toggleIdade('GG')"><input type="checkbox" id="p-idade-GG" value="GG" onchange="atualizarQtdIdades()" style="width:13px;height:13px;accent-color:var(--azul);pointer-events:none"><span style="font-size:12px;font-weight:800;color:var(--azul)">GG</span><input id="p-qtd-idade-GG" type="number" min="0" placeholder="0" inputmode="numeric" onclick="event.stopPropagation()" oninput="calcTotalQtdIdades()" style="display:none;width:36px;padding:2px 4px;border-radius:6px;border:1.5px solid #D8DEFF;font-size:12px;font-weight:800;text-align:center;outline:none;background:#fff"></div>
             </div>
             <div id="p-qtd-total-display" style="font-size:11px;font-weight:800;color:var(--verde);margin-top:5px"></div>
             <input type="hidden" id="p-qtd-estoque" value="0">
@@ -777,7 +783,7 @@ textarea{resize:none;height:60px}
           </div>
           </div><!-- /prec-calc -->
 
-          <button class="btn btn-primary" onclick="salvarPrecificacao()">💾 Salvar Precificação</button>
+          <button class="btn btn-primary" id="btnSalvarPrec" onclick="salvarPrecificacao()">💾 Salvar Precificação</button>
         </div>
       </div>
 
@@ -846,24 +852,39 @@ textarea{resize:none;height:60px}
     <!-- Card Gasto Meta Ads -->
     <div class="card" style="margin-bottom:12px">
       <div class="card-title"><span class="dot" style="background:#1877F2"></span>💙 Gasto Meta Ads — Mês Atual</div>
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div style="flex:1">
-          <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;margin-bottom:4px">Valor gasto na plataforma (R$)</div>
-          <input id="gt-meta-gasto" type="number" placeholder="0,00" inputmode="decimal"
-            style="width:100%;padding:11px 13px;border:2px solid #1877F2;border-radius:10px;font-size:18px;font-weight:800;color:#1877F2;background:#f0f4ff;outline:none"
-            oninput="salvarGastoMeta(this.value)">
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;background:#f7f8fd;border-radius:10px;padding:10px 12px">
+
+      <!-- Total acumulado -->
+      <div style="display:flex;justify-content:space-between;align-items:center;background:#f0f4ff;border-radius:12px;padding:12px 14px;margin-bottom:10px">
         <div>
-          <div style="font-size:12px;color:var(--sub);font-weight:600">💡 Atualize mensalmente com o valor do painel do Meta Ads</div>
+          <div style="font-size:11px;font-weight:800;color:#1877F2;text-transform:uppercase">Total gasto no mês</div>
           <div style="font-size:11px;color:var(--sub);margin-top:2px" id="gt-meta-atualizado">Não atualizado</div>
         </div>
-        <a href="https://adsmanager.facebook.com" target="_blank"
-          style="background:#1877F2;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:800;text-decoration:none;white-space:nowrap">
-          Abrir Meta Ads ↗
-        </a>
+        <div id="gt-meta-total-display" style="font-size:22px;font-weight:900;color:#1877F2">R$ 0,00</div>
       </div>
+
+      <!-- Novo lançamento -->
+      <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;margin-bottom:6px">Adicionar gasto</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="gt-meta-novo" type="number" placeholder="R$ 0,00" inputmode="decimal"
+          style="flex:1;padding:10px 12px;border:2px solid #1877F2;border-radius:10px;font-size:16px;font-weight:800;color:#1877F2;background:#f7f8fd;outline:none">
+        <button onclick="adicionarGastoMeta()"
+          style="padding:10px 16px;background:#1877F2;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap">
+          + Adicionar
+        </button>
+      </div>
+
+      <!-- Histórico de lançamentos -->
+      <div id="gt-meta-historico" style="display:none;margin-bottom:8px">
+        <div style="font-size:11px;font-weight:800;color:var(--sub);text-transform:uppercase;margin-bottom:4px">Lançamentos do mês</div>
+        <div id="gt-meta-lista"></div>
+      </div>
+
+      <!-- Botão Meta Ads -->
+      <a href="https://adsmanager.facebook.com" target="_blank"
+        style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:10px;background:#fff;color:#1877F2;border:2px solid #1877F2;border-radius:10px;font-size:13px;font-weight:800;text-decoration:none;box-sizing:border-box">
+        📊 Abrir Meta Ads ↗
+      </a>
+      <input id="gt-meta-gasto" type="hidden" value="0">
     </div>
     <!-- Tabela por dia: automática das vendas marcadas como anúncio -->
     <div class="card">
@@ -2210,7 +2231,7 @@ function calcPreco(){
 async function salvarPrecificacao(){
   const nome=document.getElementById('p-nome').value.trim();
   const tecido   = document.getElementById('p-tecido')?.value.trim()||'';
-  const tamanhos = document.getElementById('p-tamanhos')?.value.trim()||'';
+  const tamanhos = ''; // campo removido — variações agora via chips
   const detalhes = document.getElementById('p-detalhes')?.value.trim()||'';
   const cores     = document.getElementById('p-cores')?.value.trim()||'';
   // Quantidade por idade
@@ -2226,6 +2247,10 @@ async function salvarPrecificacao(){
   const qtdI12 = parseInt(document.getElementById('p-qtd-idade-12')?.value)||0; if(qtdI12>0){ qtdPorIdade['12']=qtdI12; qtdEstoqueTotal+=qtdI12; }
   const qtdI14 = parseInt(document.getElementById('p-qtd-idade-14')?.value)||0; if(qtdI14>0){ qtdPorIdade['14']=qtdI14; qtdEstoqueTotal+=qtdI14; }
   const qtdI16 = parseInt(document.getElementById('p-qtd-idade-16')?.value)||0; if(qtdI16>0){ qtdPorIdade['16']=qtdI16; qtdEstoqueTotal+=qtdI16; }
+  const qtdIP = parseInt(document.getElementById('p-qtd-idade-P')?.value)||0; if(qtdIP>0){ qtdPorIdade['P']=qtdIP; qtdEstoqueTotal+=qtdIP; }
+  const qtdIM = parseInt(document.getElementById('p-qtd-idade-M')?.value)||0; if(qtdIM>0){ qtdPorIdade['M']=qtdIM; qtdEstoqueTotal+=qtdIM; }
+  const qtdIG = parseInt(document.getElementById('p-qtd-idade-G')?.value)||0; if(qtdIG>0){ qtdPorIdade['G']=qtdIG; qtdEstoqueTotal+=qtdIG; }
+  const qtdIGG = parseInt(document.getElementById('p-qtd-idade-GG')?.value)||0; if(qtdIGG>0){ qtdPorIdade['GG']=qtdIGG; qtdEstoqueTotal+=qtdIGG; }
   const qtdEstoque = qtdEstoqueTotal || parseInt(document.getElementById('p-qtd-estoque')?.value)||0;
   if(!nome){ showToast('⚠️ Informe o nome do produto!','#F26522'); return; }
 
@@ -2265,6 +2290,10 @@ async function salvarPrecificacao(){
   if(document.getElementById('p-idade-12')?.checked) idadesSel.push('12');
   if(document.getElementById('p-idade-14')?.checked) idadesSel.push('14');
   if(document.getElementById('p-idade-16')?.checked) idadesSel.push('16');
+  if(document.getElementById('p-idade-P')?.checked) idadesSel.push('P');
+  if(document.getElementById('p-idade-M')?.checked) idadesSel.push('M');
+  if(document.getElementById('p-idade-G')?.checked) idadesSel.push('G');
+  if(document.getElementById('p-idade-GG')?.checked) idadesSel.push('GG');
   obj.idades = idadesSel;
   obj.faixa = idadesSel.join(','); // compatibilidade
   // Usar ID para evitar duplicata (quando editando)
@@ -2275,7 +2304,7 @@ async function salvarPrecificacao(){
   _editPrecId = null; // limpar após salvar
   // Salva no Firebase (fonte principal) e localStorage como cache
   localStorage.setItem('bn_prec',JSON.stringify(precDB));
-  const btnPrec = document.querySelector('[onclick="salvarPrecificacao()"]');
+  const btnPrec = document.getElementById('btnSalvarPrec');
   if(btnPrec){ btnPrec.disabled=true; btnPrec.style.opacity='0.6'; }
   const okPrec = await fbSalvarPrec(obj);
   if(btnPrec){ btnPrec.disabled=false; btnPrec.style.opacity=''; }
@@ -2300,6 +2329,10 @@ async function salvarPrecificacao(){
   const cb12=document.getElementById('p-idade-12'); if(cb12) cb12.checked=false; const qr12=document.getElementById('p-qtd-idade-12'); if(qr12) qr12.value='';
   const cb14=document.getElementById('p-idade-14'); if(cb14) cb14.checked=false; const qr14=document.getElementById('p-qtd-idade-14'); if(qr14) qr14.value='';
   const cb16=document.getElementById('p-idade-16'); if(cb16) cb16.checked=false; const qr16=document.getElementById('p-qtd-idade-16'); if(qr16) qr16.value='';
+  const cbP=document.getElementById('p-idade-P'); if(cbP) cbP.checked=false; const qrP=document.getElementById('p-qtd-idade-P'); if(qrP) qrP.value='';
+  const cbM=document.getElementById('p-idade-M'); if(cbM) cbM.checked=false; const qrM=document.getElementById('p-qtd-idade-M'); if(qrM) qrM.value='';
+  const cbG=document.getElementById('p-idade-G'); if(cbG) cbG.checked=false; const qrG=document.getElementById('p-qtd-idade-G'); if(qrG) qrG.value='';
+  const cbGG=document.getElementById('p-idade-GG'); if(cbGG) cbGG.checked=false; const qrGG=document.getElementById('p-qtd-idade-GG'); if(qrGG) qrGG.value='';
   atualizarQtdIdades();
   ['fotoPreviewCalcWrap','fotoPreviewManualWrap'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.style.display='none';
@@ -2351,7 +2384,8 @@ function renderPrecSalvos(){
   calcResumoEstoque();
   const el=document.getElementById('precSalvos');
   if(!precDB.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Nenhum produto ainda</strong><br>Use a calculadora acima para precificar</div>'; return; }
-  el.innerHTML=precDB.map((p,i)=>`
+  const precOrdenado = [...precDB].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  el.innerHTML=precOrdenado.map((p,i)=>`
     <div class="prec-salvo-item">
       ${p.foto?`<img src="${p.foto}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px" onerror="this.style.display='none'" onload="this.style.display='block'">`:''}
       <div class="prec-salvo-header">
@@ -2372,11 +2406,6 @@ function renderPrecSalvos(){
       </div>
     </div>
   `).join('');
-}
-
-function toggleIdade(a){
-  const cb = document.getElementById('p-idade-'+a);
-  if(cb){ cb.checked = !cb.checked; atualizarQtdIdades(); }
 }
 
 function toggleIdade(a){
@@ -2505,6 +2534,54 @@ function atualizarQtdIdades(){
       inp16.style.display='none'; inp16.value='';
     }
   }
+  const cbP = document.getElementById('p-idade-P');
+  const wrapP = document.getElementById('p-idade-wrap-P');
+  const inpP = document.getElementById('p-qtd-idade-P');
+  if(cbP && wrapP && inpP){
+    if(cbP.checked){
+      wrapP.style.background='#dce8ff'; wrapP.style.borderColor='var(--azul)';
+      inpP.style.display='inline-block';
+    } else {
+      wrapP.style.background='#f0f4ff'; wrapP.style.borderColor='#D8DEFF';
+      inpP.style.display='none'; inpP.value='';
+    }
+  }
+  const cbM = document.getElementById('p-idade-M');
+  const wrapM = document.getElementById('p-idade-wrap-M');
+  const inpM = document.getElementById('p-qtd-idade-M');
+  if(cbM && wrapM && inpM){
+    if(cbM.checked){
+      wrapM.style.background='#dce8ff'; wrapM.style.borderColor='var(--azul)';
+      inpM.style.display='inline-block';
+    } else {
+      wrapM.style.background='#f0f4ff'; wrapM.style.borderColor='#D8DEFF';
+      inpM.style.display='none'; inpM.value='';
+    }
+  }
+  const cbG = document.getElementById('p-idade-G');
+  const wrapG = document.getElementById('p-idade-wrap-G');
+  const inpG = document.getElementById('p-qtd-idade-G');
+  if(cbG && wrapG && inpG){
+    if(cbG.checked){
+      wrapG.style.background='#dce8ff'; wrapG.style.borderColor='var(--azul)';
+      inpG.style.display='inline-block';
+    } else {
+      wrapG.style.background='#f0f4ff'; wrapG.style.borderColor='#D8DEFF';
+      inpG.style.display='none'; inpG.value='';
+    }
+  }
+  const cbGG = document.getElementById('p-idade-GG');
+  const wrapGG = document.getElementById('p-idade-wrap-GG');
+  const inpGG = document.getElementById('p-qtd-idade-GG');
+  if(cbGG && wrapGG && inpGG){
+    if(cbGG.checked){
+      wrapGG.style.background='#dce8ff'; wrapGG.style.borderColor='var(--azul)';
+      inpGG.style.display='inline-block';
+    } else {
+      wrapGG.style.background='#f0f4ff'; wrapGG.style.borderColor='#D8DEFF';
+      inpGG.style.display='none'; inpGG.value='';
+    }
+  }
   calcTotalQtdIdades();
 }
 
@@ -2520,6 +2597,10 @@ function calcTotalQtdIdades(){
   total += parseInt(document.getElementById('p-qtd-idade-12')?.value)||0;
   total += parseInt(document.getElementById('p-qtd-idade-14')?.value)||0;
   total += parseInt(document.getElementById('p-qtd-idade-16')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-P')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-M')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-G')?.value)||0;
+  total += parseInt(document.getElementById('p-qtd-idade-GG')?.value)||0;
   const el = document.getElementById('p-qtd-estoque');
   if(el) el.value = total;
   // Mostrar total
@@ -2599,7 +2680,7 @@ function renderCatalogo(){
   const busca = (document.getElementById('catalogoBusca')?.value||'').toLowerCase().trim();
   const filtroUso   = document.getElementById('filtroUso')?.value||'';
   const filtroFaixa = document.getElementById('filtroFaixa')?.value||'';
-  const lista = precDB.filter(p=>{
+  const listaFiltrada = precDB.filter(p=>{
     if(busca && !p.nome.toLowerCase().includes(busca)) return false;
     if(filtroUso && p.uso && p.uso !== filtroUso && p.uso !== 'Ambos') return false;
     if(filtroFaixa){
@@ -2612,12 +2693,13 @@ function renderCatalogo(){
     el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Lista de preços vazia</strong><br>Adicione produtos na aba Estoque → Precificação</div>';
     return;
   }
-  if(!lista.length){
+  if(!listaFiltrada.length){
     el.innerHTML='<div class="vazio"><span class="vazio-e">🔍</span>Nenhum produto encontrado para "'+busca+'"</div>';
     return;
   }
   // Agrupa por tipo (primeira palavra do nome)
   const grupos = {};
+  const lista = [...listaFiltrada].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
   lista.forEach(p=>{
     const tipo = p.tipo || p.nome.split(' ')[0];
     if(!grupos[tipo]) grupos[tipo]=[];
@@ -2705,18 +2787,12 @@ function editarPrec(prodId){
   const usoEl = document.getElementById('p-uso');
   const faixaEl = document.getElementById('p-faixa');
   if(usoEl) usoEl.value = p.uso||'';
-  // Preencher checkboxes de idade
+  // Preencher checkboxes de idade e tamanho
   const idadesP = p.idades || (p.faixa ? p.faixa.split(',') : []);
-  const cbE1=document.getElementById('p-idade-1'); if(cbE1) cbE1.checked=idadesP.includes('1');
-  const cbE2=document.getElementById('p-idade-2'); if(cbE2) cbE2.checked=idadesP.includes('2');
-  const cbE3=document.getElementById('p-idade-3'); if(cbE3) cbE3.checked=idadesP.includes('3');
-  const cbE4=document.getElementById('p-idade-4'); if(cbE4) cbE4.checked=idadesP.includes('4');
-  const cbE6=document.getElementById('p-idade-6'); if(cbE6) cbE6.checked=idadesP.includes('6');
-  const cbE8=document.getElementById('p-idade-8'); if(cbE8) cbE8.checked=idadesP.includes('8');
-  const cbE10=document.getElementById('p-idade-10'); if(cbE10) cbE10.checked=idadesP.includes('10');
-  const cbE12=document.getElementById('p-idade-12'); if(cbE12) cbE12.checked=idadesP.includes('12');
-  const cbE14=document.getElementById('p-idade-14'); if(cbE14) cbE14.checked=idadesP.includes('14');
-  const cbE16=document.getElementById('p-idade-16'); if(cbE16) cbE16.checked=idadesP.includes('16');
+  ['1','2','3','4','6','8','10','12','14','16','P','M','G','GG'].forEach(function(v){
+    var cb = document.getElementById('p-idade-'+v);
+    if(cb) cb.checked = idadesP.includes(v);
+  });
 
   if(p.modoManual){
     // Modo manual
@@ -3326,11 +3402,20 @@ async function fbSalvarEstoque(item){
 
 async function fbSalvarPrec(obj){
   try {
-    if(!_fbReady) throw new Error('Firebase não pronto');
+    // Sempre salvar no localStorage como garantia
+    localStorage.setItem('bn_prec', JSON.stringify(precDB));
+    if(!_fbReady){
+      // Sem Firebase — salvar só no localStorage e retornar sucesso
+      return true;
+    }
     const {db, doc, setDoc} = window._fb;
     await setDoc(doc(db,'precificacao', String(obj.id)), obj);
     return true;
-  } catch(e){ console.error('fbSalvarPrec:', e); showToast('❌ Erro ao salvar precificação','#dc2626'); return false; }
+  } catch(e){
+    console.error('fbSalvarPrec:', e);
+    // Mesmo com erro no Firebase, dados já estão no localStorage
+    return true;
+  }
 }
 
 async function fbDeletarPrec(id){
@@ -3396,38 +3481,80 @@ async function excluirVendaDireto(vendaId){
 // ══════════════════════════════════════════
 async function salvarCustoAdGestor(){ /* não usado mais */ }
 
-// Salvar gasto Meta Ads no Firebase
-let _metaSaveTimer = null;
-function salvarGastoMeta(valor){
-  clearTimeout(_metaSaveTimer);
-  _metaSaveTimer = setTimeout(async function(){
-    const v = parseFloat(valor)||0;
-    const mes = dpKey();
-    try {
-      await fbSalvarConfig('meta_gasto_'+mes, {valor: v, atualizado: new Date().toISOString()});
-      const agora = new Date().toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-      const el = document.getElementById('gt-meta-atualizado');
-      if(el) el.textContent = '✅ Atualizado em ' + agora;
-    } catch(e){ console.error('Erro ao salvar gasto meta:', e); }
-  }, 800);
+// Salvar gasto Meta Ads no Firebase — sistema de lançamentos
+function adicionarGastoMeta(){
+  const inp = document.getElementById('gt-meta-novo');
+  const v = parseFloat(inp?.value)||0;
+  if(v <= 0){ showToast('⚠️ Informe um valor','#F26522'); return; }
+  const mes = dpKey();
+  // Carregar lançamentos existentes
+  let lancamentos = [];
+  try { lancamentos = JSON.parse(localStorage.getItem('bn_meta_lanc_'+mes)||'[]'); } catch(e){}
+  // Adicionar novo
+  const agora = new Date().toISOString();
+  lancamentos.push({ valor: v, data: agora });
+  localStorage.setItem('bn_meta_lanc_'+mes, JSON.stringify(lancamentos));
+  // Salvar total no Firebase
+  const total = lancamentos.reduce((s,l)=>s+(l.valor||0), 0);
+  fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: agora });
+  // Limpar input e atualizar
+  inp.value = '';
+  renderGastoMeta(lancamentos, total);
+  showToast('💙 Gasto adicionado!');
 }
+
+function renderGastoMeta(lancamentos, total){
+  const totalEl = document.getElementById('gt-meta-total-display');
+  if(totalEl) totalEl.textContent = 'R$ '+(total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const atualEl = document.getElementById('gt-meta-atualizado');
+  if(atualEl && lancamentos && lancamentos.length){
+    const ult = new Date(lancamentos[lancamentos.length-1].data);
+    atualEl.textContent = '✅ Último: '+ult.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  }
+  const hist = document.getElementById('gt-meta-historico');
+  const lista = document.getElementById('gt-meta-lista');
+  if(!lancamentos || !lancamentos.length){ if(hist) hist.style.display='none'; return; }
+  if(hist) hist.style.display='block';
+  if(lista){
+    lista.innerHTML = lancamentos.slice().reverse().map((l,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 10px;background:#f7f8fd;border-radius:8px;margin-bottom:4px">
+        <div style="font-size:11px;color:var(--sub);font-weight:600">${new Date(l.data).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:13px;font-weight:800;color:#1877F2">R$ ${(l.valor||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</span>
+          <button onclick="removerGastoMeta(${lancamentos.length-1-i})" style="background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:800;cursor:pointer">✕</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function removerGastoMeta(idx){
+  const mes = dpKey();
+  let lancamentos = [];
+  try { lancamentos = JSON.parse(localStorage.getItem('bn_meta_lanc_'+mes)||'[]'); } catch(e){}
+  lancamentos.splice(idx, 1);
+  localStorage.setItem('bn_meta_lanc_'+mes, JSON.stringify(lancamentos));
+  const total = lancamentos.reduce((s,l)=>s+(l.valor||0), 0);
+  fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: new Date().toISOString() });
+  renderGastoMeta(lancamentos, total);
+}
+
+function salvarGastoMeta(valor){ /* compatibilidade */ }
 
 function carregarGastoMeta(){
   const mes = dpKey();
-  // Buscar do Firebase via config listener ou localStorage
-  const cached = localStorage.getItem('bn_meta_'+mes);
-  if(cached){
-    try {
-      const obj = JSON.parse(cached);
-      const el = document.getElementById('gt-meta-gasto');
-      if(el && obj.valor) el.value = obj.valor;
-      const dt = document.getElementById('gt-meta-atualizado');
-      if(dt && obj.atualizado){
-        const d = new Date(obj.atualizado).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-        dt.textContent = '✅ Atualizado em '+d;
-      }
-    } catch(e){}
-  }
+  // Tentar localStorage primeiro
+  let lancamentos = [];
+  let total = 0;
+  try {
+    const cached = JSON.parse(localStorage.getItem('bn_meta_lanc_'+mes)||'[]');
+    if(cached.length){ lancamentos = cached; total = cached.reduce((s,l)=>s+(l.valor||0),0); }
+    else {
+      // fallback para formato antigo
+      const old = JSON.parse(localStorage.getItem('bn_meta_'+mes)||'null');
+      if(old && old.valor){ total = old.valor; }
+    }
+  } catch(e){}
+  renderGastoMeta(lancamentos, total);
 }
 
 function renderGestor(){
@@ -4016,4 +4143,17 @@ function removerFundoBranco(imgEl, tolerancia=30){
     const qEl14=document.getElementById('p-qtd-idade-14'); if(qEl14) qEl14.value=p.qtdPorIdade['14']||'';
     const qEl16=document.getElementById('p-qtd-idade-16'); if(qEl16) qEl16.value=p.qtdPorIdade['16']||'';
   }
-  atualizarQtdIdades();>
+  atualizarQtdIdades();let cbFill1=document.getElementById('p-idade-1'); if(cbFill1) cbFill1.checked=idadesP.includes('1');
+  let cbFill2=document.getElementById('p-idade-2'); if(cbFill2) cbFill2.checked=idadesP.includes('2');
+  let cbFill3=document.getElementById('p-idade-3'); if(cbFill3) cbFill3.checked=idadesP.includes('3');
+  let cbFill4=document.getElementById('p-idade-4'); if(cbFill4) cbFill4.checked=idadesP.includes('4');
+  let cbFill6=document.getElementById('p-idade-6'); if(cbFill6) cbFill6.checked=idadesP.includes('6');
+  let cbFill8=document.getElementById('p-idade-8'); if(cbFill8) cbFill8.checked=idadesP.includes('8');
+  let cbFill10=document.getElementById('p-idade-10'); if(cbFill10) cbFill10.checked=idadesP.includes('10');
+  let cbFill12=document.getElementById('p-idade-12'); if(cbFill12) cbFill12.checked=idadesP.includes('12');
+  let cbFill14=document.getElementById('p-idade-14'); if(cbFill14) cbFill14.checked=idadesP.includes('14');
+  let cbFill16=document.getElementById('p-idade-16'); if(cbFill16) cbFill16.checked=idadesP.includes('16');
+  let cbFillPp=document.getElementById('p-idade-P'); if(cbFillPp) cbFillPp.checked=idadesP.includes('P');
+  let cbFillMm=document.getElementById('p-idade-M'); if(cbFillMm) cbFillMm.checked=idadesP.includes('M');
+  let cbFillGg=document.getElementById('p-idade-G'); if(cbFillGg) cbFillGg.checked=idadesP.includes('G');
+  let cbFillGgGg=document.getElementById('p-idade-GG'); if(cbFillGgGg) cbFillGgGg.checked=idadesP.includes('GG');>
