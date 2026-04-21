@@ -1479,7 +1479,12 @@ window.addEventListener('DOMContentLoaded', function(){
     if(modoAtual) renderEstoque();
   });
   snap(col(db,'precificacao'), function(s){
-    precDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    var newPrec = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    // Só atualizar se Firebase retornou dados OU se precDB estava vazio
+    if(newPrec.length > 0 || precDB.length === 0){
+      precDB = newPrec;
+      localStorage.setItem('bn_prec', JSON.stringify(precDB));
+    }
     if(modoAtual){ renderPrecSalvos(); renderCatalogo(); }
   });
   snap(col(db,'config'), function(s){
@@ -1726,6 +1731,7 @@ function setModoPrec(modo){
 // FILTRO CLIENTES
 // ══════════════════════════════════════════
 let filtroCliente='frequencia';
+let _editPrecId = null;
 function setFiltroCliente(f,el){
   filtroCliente=f;
   document.querySelectorAll('[id^="cf-"]').forEach(b=>b.classList.remove('active'));
@@ -3405,15 +3411,20 @@ async function fbSalvarPrec(obj){
     // Sempre salvar no localStorage como garantia
     localStorage.setItem('bn_prec', JSON.stringify(precDB));
     if(!_fbReady){
-      // Sem Firebase — salvar só no localStorage e retornar sucesso
       return true;
     }
     const {db, doc, setDoc} = window._fb;
-    await setDoc(doc(db,'precificacao', String(obj.id)), obj);
+    // Usar string curta como ID no Firestore
+    var docId = 'p_' + String(obj.id);
+    await setDoc(doc(db,'precificacao', docId), obj);
+    // Atualizar ID no precDB para o ID do Firestore
+    obj.id = docId;
+    const idx2 = precDB.findIndex(p=>p.id === obj.id || String(p.id) === String(obj.id));
+    if(idx2 >= 0) precDB[idx2] = obj;
+    localStorage.setItem('bn_prec', JSON.stringify(precDB));
     return true;
   } catch(e){
     console.error('fbSalvarPrec:', e);
-    // Mesmo com erro no Firebase, dados já estão no localStorage
     return true;
   }
 }
@@ -4091,6 +4102,13 @@ function removerFundoBranco(imgEl, tolerancia=30){
 <script>
 (function() {
   function ligarBotoesLogin() {
+    // Botão salvar precificação — garantir listener
+    var btnSP = document.getElementById('btnSalvarPrec');
+    if(btnSP){
+      btnSP.removeAttribute('onclick');
+      btnSP.addEventListener('click', function(e){ e.preventDefault(); salvarPrecificacao(); });
+    }
+
     var btnV = document.getElementById('btnVendedora');
     var btnG = document.getElementById('btnGestor');
     var btnD = document.getElementById('btnGestoras');
