@@ -2412,11 +2412,6 @@ function toggleIdade(a){
   if(cb){ cb.checked = !cb.checked; atualizarQtdIdades(); }
 }
 
-function toggleIdade(a){
-  const cb = document.getElementById('p-idade-'+a);
-  if(cb){ cb.checked = !cb.checked; atualizarQtdIdades(); }
-}
-
 function atualizarQtdIdades(){
   const cb1 = document.getElementById('p-idade-1');
   const wrap1 = document.getElementById('p-idade-wrap-1');
@@ -3405,11 +3400,20 @@ async function fbSalvarEstoque(item){
 
 async function fbSalvarPrec(obj){
   try {
-    if(!_fbReady) throw new Error('Firebase não pronto');
+    // Sempre salvar no localStorage como garantia
+    localStorage.setItem('bn_prec', JSON.stringify(precDB));
+    if(!_fbReady){
+      // Sem Firebase — salvar só no localStorage e retornar sucesso
+      return true;
+    }
     const {db, doc, setDoc} = window._fb;
     await setDoc(doc(db,'precificacao', String(obj.id)), obj);
     return true;
-  } catch(e){ console.error('fbSalvarPrec:', e); showToast('❌ Erro ao salvar precificação','#dc2626'); return false; }
+  } catch(e){
+    console.error('fbSalvarPrec:', e);
+    // Mesmo com erro no Firebase, dados já estão no localStorage
+    return true;
+  }
 }
 
 async function fbDeletarPrec(id){
