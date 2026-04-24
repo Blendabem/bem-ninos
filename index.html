@@ -3129,7 +3129,7 @@ function abrirDetalhe(prodId){
 
   // Nome e preço
   document.getElementById('prodDetalheNome').textContent = p.nome;
-  document.getElementById('prodDetalhePreco').textContent = brl(p.precoFinal);
+  document.getElementById('prodDetalhePreco').textContent = brl(p.precoFinal||p.preco||0);
 
   // Foto
   if(p.foto){
@@ -3242,7 +3242,7 @@ function renderCatalogo(){
             </div>` : ''}
             </div>
             <div style="text-align:right;flex-shrink:0;margin-left:12px">
-              <div style="font-size:17px;font-weight:900;color:var(--azul)">${brl(p.precoFinal)}</div>
+              <div style="font-size:17px;font-weight:900;color:var(--azul)">${brl(p.precoFinal||p.preco||0)}</div>
             </div>
           </div>
           <div style="display:flex;gap:6px;margin-top:8px">
@@ -3425,7 +3425,7 @@ function sugerirProdutoItem(inputEl, itemId){
   box.id = 'prod-sug-'+itemId;
   box.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--azul);border-radius:0 0 10px 10px;z-index:300;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.15)';
   box.innerHTML = sugs.map(p=>`
-    <div onclick="selecionarProdutoItem(${itemId},'${p.nome.replace(/'/g,"\\'")}',${p.precoFinal},${p.compra||0}); this.parentElement.remove()"
+    <div onclick="selecionarProdutoItem(${itemId},'${p.nome.replace(/'/g,"\\'")}',${p.precoFinal||p.preco||0},${p.compra||p.custo||0}); this.parentElement.remove()"
       style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between">
       <span>👕 ${p.nome}</span>
       <div style="text-align:right">
@@ -3811,20 +3811,21 @@ function renderRelatorioVendedora(){
     return;
   }
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:8px 0;font-size:11px;font-weight:800;color:var(--sub);border-bottom:1px solid var(--borda);text-transform:uppercase;letter-spacing:.4px">
-      <span>Data</span><span style="text-align:right">Venda</span><span style="text-align:right">Comissão</span>
+    <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:4px;padding:8px 0;font-size:11px;font-weight:800;color:var(--sub);border-bottom:1px solid var(--borda);text-transform:uppercase;letter-spacing:.4px">
+      <span>Data</span><span>Cliente</span><span style="text-align:right">Venda</span><span style="text-align:right">Comissão</span>
     </div>
     ${minhas.map(v=>{
       const data = new Date(v.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
       const com = Number(v.val)*(COMISSAO_PCT/100);
-      return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:10px 0;font-size:13px;border-bottom:1px solid #f4f6fb">
+      return `<div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:4px;padding:10px 0;font-size:13px;border-bottom:1px solid #f4f6fb;align-items:start">
         <span style="font-weight:700">${data}<br><span style="font-size:10px;color:var(--sub)">${v.prod}</span></span>
+        <span style="font-weight:700;font-size:12px;color:var(--azul);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.cli||'—'}</span>
         <span style="text-align:right;font-weight:800">${brl(v.val)}</span>
         <span style="text-align:right;font-weight:900;color:var(--verde)">${brl(com)}</span>
       </div>`;
     }).join('')}
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:10px 0;font-weight:900;border-top:2px solid var(--borda);margin-top:4px">
-      <span>Total</span>
+    <div style="display:grid;grid-template-columns:1fr 1.5fr 1fr 1fr;gap:4px;padding:10px 0;font-weight:900;border-top:2px solid var(--borda);margin-top:4px">
+      <span>Total</span><span></span>
       <span style="text-align:right">${brl(totalVal)}</span>
       <span style="text-align:right;color:var(--verde)">${brl(comissao)}</span>
     </div>
@@ -3955,18 +3956,16 @@ async function fbSalvarEstoque(item){
 
 async function fbSalvarPrec(obj){
   try {
-    // Sempre salvar no localStorage como garantia
     localStorage.setItem('bn_prec', JSON.stringify(precDB));
-    if(!_fbReady){
-      return true;
-    }
+    if(!_fbReady) return true;
     const {db, doc, setDoc} = window._fb;
-    // Usar string curta como ID no Firestore
-    var docId = 'p_' + String(obj.id);
+    // Garante ID único sem duplicar prefixo p_
+    var rawId = String(obj.id||Date.now());
+    var docId = rawId.startsWith('p_') ? rawId : 'p_' + rawId;
+    obj.id = docId; // normaliza o ID no objeto
     await setDoc(doc(db,'precificacao', docId), obj);
-    // Atualizar ID no precDB para o ID do Firestore
-    obj.id = docId;
-    const idx2 = precDB.findIndex(p=>p.id === obj.id || String(p.id) === String(obj.id));
+    // Atualiza precDB com ID normalizado
+    const idx2 = precDB.findIndex(p=>p.id === docId || String(p.id) === rawId);
     if(idx2 >= 0) precDB[idx2] = obj;
     localStorage.setItem('bn_prec', JSON.stringify(precDB));
     return true;
