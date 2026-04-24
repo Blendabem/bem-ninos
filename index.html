@@ -552,10 +552,11 @@ textarea{resize:none;height:60px}
               <div style="font-size:13px;font-weight:800">Envio para outra cidade/estado?</div>
               <div style="font-size:11px;color:var(--sub)">Marque para sinalizar nos pedidos</div>
             </div>
-            <label style="position:relative;display:inline-block;width:44px;height:24px;text-transform:none;letter-spacing:0">
-              <input type="checkbox" id="f-envio" style="opacity:0;width:0;height:0" onchange="toggleEnvio(this.checked)">
-              <span id="toggleEnvioSpan" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s" onclick="document.getElementById('f-envio').click()"></span>
-            </label>
+            <div onclick="var cb=document.getElementById('f-envio');cb.checked=!cb.checked;toggleEnvio(cb.checked)"
+              style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0">
+              <input type="checkbox" id="f-envio" style="opacity:0;width:0;height:0;position:absolute">
+              <span id="toggleEnvioSpan" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s;pointer-events:none"></span>
+            </div>
           </div>
         </div>
 
@@ -887,6 +888,13 @@ textarea{resize:none;height:60px}
         </div>
         <div id="precSalvos"></div>
       </div>
+
+      <!-- PRODUTOS NÃO CADASTRADOS -->
+      <div class="card" id="cardNaoCadastrados" style="display:none">
+        <div class="card-title"><span class="dot" style="background:var(--amarelo)"></span>⚠️ Vendidos sem Cadastro <span id="naoCadastradosCount" style="background:#F59E0B;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px;margin-left:4px"></span></div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Produtos que apareceram em vendas mas não estão na Precificação</div>
+        <div id="naoCadastradosList"></div>
+      </div>
     </div>
   </section>
 
@@ -1201,10 +1209,11 @@ textarea{resize:none;height:60px}
       <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--borda);margin-top:4px">
         <span style="font-size:18px">📦</span>
         <div style="flex:1;font-size:13px;font-weight:700">Envio para outra cidade/estado?</div>
-        <label style="position:relative;display:inline-block;width:44px;height:24px;text-transform:none;letter-spacing:0">
-          <input type="checkbox" id="e-envio" style="opacity:0;width:0;height:0" onchange="this.previousElementSibling && (document.getElementById('e-envio-span').style.background=this.checked?'var(--azul)':'#ccc')">
-          <span id="e-envio-span" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s" onclick="document.getElementById('e-envio').click()"></span>
-        </label>
+        <div onclick="var cb=document.getElementById('e-envio');cb.checked=!cb.checked;document.getElementById('e-envio-span').style.background=cb.checked?'var(--azul)':'#ccc'"
+          style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="e-envio" style="opacity:0;width:0;height:0;position:absolute">
+          <span id="e-envio-span" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s;pointer-events:none"></span>
+        </div>
       </div>
       <!-- resumo rápido -->
       <div style="background:#f7f8fd;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;font-size:13px;font-weight:800">
@@ -2721,6 +2730,7 @@ function calcResumoEstoque(){
 
 function renderPrecSalvos(){
   calcResumoEstoque();
+  renderNaoCadastrados();
   const el=document.getElementById('precSalvos');
   if(!precDB.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Nenhum produto ainda</strong><br>Use a calculadora acima para precificar</div>'; return; }
   const busca = (document.getElementById('precBusca')?.value||'').toLowerCase().trim();
@@ -2757,6 +2767,44 @@ function renderPrecSalvos(){
       </div>
     </div>
   `).join('');
+}
+
+function renderNaoCadastrados(){
+  const card = document.getElementById('cardNaoCadastrados');
+  const list = document.getElementById('naoCadastradosList');
+  const count = document.getElementById('naoCadastradosCount');
+  if(!card||!list) return;
+
+  // Pega todos os nomes de produtos de todas as vendas
+  const nomesVendidos = new Set();
+  vendas.forEach(v=>{
+    if(v.itens && v.itens.length){
+      v.itens.forEach(it=>{ if(it.prod && it.prod.trim()) nomesVendidos.add(it.prod.trim()); });
+    } else if(v.prod){
+      // vendas antigas sem itens
+      v.prod.split(',').forEach(p=>{
+        const nome = p.replace(/^\d+x\s*/,'').replace(/\s*T\.\w+/,'').trim();
+        if(nome) nomesVendidos.add(nome);
+      });
+    }
+  });
+
+  // Filtra os que NÃO estão no precDB
+  const nomesPrec = new Set(precDB.map(p=>p.nome.toLowerCase().trim()));
+  const naoCadastrados = [...nomesVendidos]
+    .filter(n => !nomesPrec.has(n.toLowerCase().trim()))
+    .sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+  if(!naoCadastrados.length){ card.style.display='none'; return; }
+
+  card.style.display='block';
+  count.textContent = naoCadastrados.length;
+  list.innerHTML = naoCadastrados.map(nome=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fffbeb;border-radius:8px;margin-bottom:5px;border:1px solid #FDE68A">
+      <span style="font-size:14px">👕</span>
+      <span style="font-size:13px;font-weight:700;color:#92400e;flex:1">${nome}</span>
+      <span style="font-size:10px;font-weight:700;color:#b45309;background:#FEF3C7;padding:2px 7px;border-radius:6px">Não cadastrado</span>
+    </div>`).join('');
 }
 
 function toggleIdade(a){
@@ -3239,7 +3287,17 @@ function sugerirProdutoItem(inputEl, itemId){
 
   // Busca no precDB
   const sugs = precDB.filter(p=>p.nome.toLowerCase().includes(termo)).slice(0,5);
-  if(!sugs.length) return;
+  if(!sugs.length){
+    // Mostra dica que pode digitar livremente
+    const box = document.createElement('div');
+    box.id = 'prod-sug-'+itemId;
+    box.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fffbeb;border:2px solid #FDE68A;border-radius:0 0 10px 10px;z-index:300;padding:8px 12px;font-size:12px;font-weight:700;color:#92400e';
+    box.innerHTML = '✏️ Produto não cadastrado — preencha o valor manualmente abaixo';
+    inputEl.parentElement.style.position='relative';
+    inputEl.parentElement.appendChild(box);
+    setTimeout(()=>{ const b=document.getElementById('prod-sug-'+itemId); if(b) b.remove(); }, 2500);
+    return;
+  }
 
   const box = document.createElement('div');
   box.id = 'prod-sug-'+itemId;
@@ -4213,7 +4271,7 @@ function renderAll(){
   if(modoAtual==='dono'){
     renderProdutos(); renderClientes(); renderBalanco();
     renderEstoque(); renderPrecSalvos(); renderClientesFull();
-    renderAnuncios();
+    renderAnuncios(); renderNaoCadastrados();
   }
 }
 
