@@ -178,7 +178,7 @@ textarea{resize:none;height:60px}
 .bal-total{background:linear-gradient(135deg,#E8EDFF,#F0F4FF);border:1.5px solid #D8DEFF;border-radius:14px;padding:16px;display:flex;justify-content:space-between;align-items:center;margin:12px 0}
 .bt-label{color:rgba(255,255,255,.75);font-size:13px;font-weight:700}
 .bt-sub{color:rgba(255,255,255,.5);font-size:11px;margin-top:2px}
-.bt-val{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#fff}
+.bt-val{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:24px;font-weight:800;color:#4ade80}
 .footer-bar{background:#EEF2FF;border-top:1.5px solid #D8DEFF;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;position:fixed;bottom:0;left:0;right:0;z-index:200;box-shadow:0 -2px 8px rgba(43,47,168,.08)}
 .footer-logo{height:32px;width:auto;object-fit:contain}
 .footer-info{display:flex;align-items:center;gap:8px}
@@ -544,6 +544,21 @@ textarea{resize:none;height:60px}
 
         <div class="fg"><label>Observação</label><textarea id="f-obs" placeholder="Ex: Embrulho para presente..."></textarea></div>
 
+        <!-- MARCAÇÃO ENVIO -->
+        <div style="background:#f0f7ff;border-radius:10px;padding:12px;border:1.5px solid #D8DEFF">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="font-size:20px">📦</span>
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:800">Envio para outra cidade/estado?</div>
+              <div style="font-size:11px;color:var(--sub)">Marque para sinalizar nos pedidos</div>
+            </div>
+            <label style="position:relative;display:inline-block;width:44px;height:24px;text-transform:none;letter-spacing:0">
+              <input type="checkbox" id="f-envio" style="opacity:0;width:0;height:0" onchange="toggleEnvio(this.checked)">
+              <span id="toggleEnvioSpan" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s" onclick="document.getElementById('f-envio').click()"></span>
+            </label>
+          </div>
+        </div>
+
         <!-- MARCAÇÃO DE ANÚNCIO -->
         <div id="anuncioBox" style="background:#f0f2fa;border-radius:12px;padding:12px">
           <div style="font-size:12px;font-weight:800;color:var(--azul);margin-bottom:10px">📣 Esta venda veio de anúncio?</div>
@@ -602,7 +617,13 @@ textarea{resize:none;height:60px}
   <!-- PEDIDOS -->
   <section class="section" id="sec-pedidos">
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--verde)"></span>Pedidos do Período <span style="font-size:11px;font-weight:600;color:var(--sub);margin-left:4px" id="pedidoHint">(toque para ver custos)</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0"><span class="dot" style="background:var(--verde)"></span>Pedidos do Período <span style="font-size:11px;font-weight:600;color:var(--sub);margin-left:4px" id="pedidoHint">(toque para ver custos)</span></div>
+        <button id="btnFiltroEnvio" onclick="toggleFiltroEnvio()"
+          style="background:#f0f7ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">
+          📦 Ver envios
+        </button>
+      </div>
       <div class="pedido-list" id="listFull"></div>
     </div>
   </section>
@@ -1177,6 +1198,14 @@ textarea{resize:none;height:60px}
           </div>
         </div>
       </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--borda);margin-top:4px">
+        <span style="font-size:18px">📦</span>
+        <div style="flex:1;font-size:13px;font-weight:700">Envio para outra cidade/estado?</div>
+        <label style="position:relative;display:inline-block;width:44px;height:24px;text-transform:none;letter-spacing:0">
+          <input type="checkbox" id="e-envio" style="opacity:0;width:0;height:0" onchange="this.previousElementSibling && (document.getElementById('e-envio-span').style.background=this.checked?'var(--azul)':'#ccc')">
+          <span id="e-envio-span" style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s" onclick="document.getElementById('e-envio').click()"></span>
+        </label>
+      </div>
       <!-- resumo rápido -->
       <div style="background:#f7f8fd;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;font-size:13px;font-weight:800">
         <span style="color:var(--sub)">💸 Custo Total</span><span id="er-custo" class="neg">R$ 0,00</span>
@@ -1585,6 +1614,9 @@ window.addEventListener('DOMContentLoaded', function(){
         // Se for o mês atual, atualiza a tela
         if(mesKey === dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
           renderGastoMeta(lancs, data.valor||0);
+          // Preenche campo Meta Ads no Balanço automaticamente
+          const dMetaAds = document.getElementById('d-meta-ads');
+          if(dMetaAds && (data.valor||0) > 0){ dMetaAds.value = (data.valor).toFixed(2); renderBalanco(); }
         }
       }
     });
@@ -2076,7 +2108,8 @@ async function registrarVenda(){
     anuncioNome: vendaVeioDeAnuncio ? (document.getElementById('f-anuncio-nome').value.trim()||'Anúncio') : '',
     anuncioCusto: vendaVeioDeAnuncio ? (parseFloat(document.getElementById('f-anuncio-custo').value)||0) : 0,
     anuncioPlat: vendaVeioDeAnuncio ? document.getElementById('f-anuncio-plat').value : '',
-    vendedora1: vendaVendedora1
+    vendedora1: vendaVendedora1,
+    envio: document.getElementById('f-envio')?.checked || false
   };
 
   if(isDono){
@@ -2114,6 +2147,9 @@ async function registrarVenda(){
   // reset anúncio e vendedora
   toggleAnuncio(false);
   vendaVeioDeAnuncio = false;
+  // Reset envio
+  const fEnvio = document.getElementById('f-envio');
+  if(fEnvio){ fEnvio.checked = false; toggleEnvio(false); }
   vendaVendedora1 = false;
   const span = document.getElementById('toggleVend1');
   if(span){ span.style.background='#ccc'; span.style.transform=''; }
@@ -2139,6 +2175,27 @@ async function registrarVenda(){
   }
   pMes=new Date().getMonth(); pAno=new Date().getFullYear();
   atualizarLabel(); carregarDespesas();
+}
+
+// ══════════════════════════════════════════
+// ENVIO
+// ══════════════════════════════════════════
+let filtroSoEnvios = false;
+
+function toggleEnvio(checked){
+  const span = document.getElementById('toggleEnvioSpan');
+  if(span) span.style.background = checked ? 'var(--azul)' : '#ccc';
+}
+
+function toggleFiltroEnvio(){
+  filtroSoEnvios = !filtroSoEnvios;
+  const btn = document.getElementById('btnFiltroEnvio');
+  if(btn){
+    btn.style.background = filtroSoEnvios ? 'var(--azul)' : '#f0f7ff';
+    btn.style.color = filtroSoEnvios ? '#fff' : 'var(--azul)';
+    btn.textContent = filtroSoEnvios ? '📦 Só envios ✕' : '📦 Ver envios';
+  }
+  renderPedidos('listFull', 999);
 }
 
 // ══════════════════════════════════════════
@@ -2176,6 +2233,7 @@ function salvarOrcamento(){
     anuncioCusto: vendaVeioDeAnuncio?(parseFloat(document.getElementById('f-anuncio-custo').value)||0):0,
     anuncioPlat: vendaVeioDeAnuncio?document.getElementById('f-anuncio-plat').value:'',
     vendedora1: vendaVendedora1,
+    envio: document.getElementById('f-envio')?.checked || false,
     registradoPor: modoAtual
   };
 
@@ -3144,6 +3202,13 @@ async function salvarDespesas(){
 function carregarDespesas(){
   const obj=despesasDB[dpKey()]||{};
   DESP_IDS.forEach(id=>{ document.getElementById(id).value=obj[id]||''; });
+  // Carrega valor do Meta Ads da aba Anúncios
+  try {
+    const lancs = JSON.parse(localStorage.getItem('bn_meta_lanc_'+dpKey())||'[]');
+    const totalMeta = lancs.reduce((s,l)=>s+(l.valor||0), 0);
+    const dMetaAds = document.getElementById('d-meta-ads');
+    if(dMetaAds && totalMeta > 0) dMetaAds.value = totalMeta.toFixed(2);
+  } catch(e){}
 }
 
 // ══════════════════════════════════════════
@@ -3613,6 +3678,10 @@ function abrirEditModal(vendaId){
   eAnuncioExtra.style.display = v.anuncio ? 'block' : 'none';
   document.getElementById('e-anuncio-nome').value = v.anuncioNome||'';
   document.getElementById('e-anuncio-plat').value = v.anuncioPlat||'';
+  // envio
+  const eEnvio = document.getElementById('e-envio');
+  const eEnvioSpan = document.getElementById('e-envio-span');
+  if(eEnvio){ eEnvio.checked = !!v.envio; if(eEnvioSpan) eEnvioSpan.style.background = v.envio ? 'var(--azul)' : '#ccc'; }
   calcEditCusto();
   document.getElementById('editModal').style.display='flex';
 }
@@ -3658,7 +3727,8 @@ async function salvarEdicao(){
     custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:val-totalC,
     anuncio: document.getElementById('e-anuncio').checked,
     anuncioNome: document.getElementById('e-anuncio-nome').value.trim(),
-    anuncioPlat: document.getElementById('e-anuncio-plat').value
+    anuncioPlat: document.getElementById('e-anuncio-plat').value,
+    envio: document.getElementById('e-envio')?.checked || false
   };
   // Atualiza no Firestore usando o ID do documento diretamente
   console.log('Salvando edicao venda...', atualizado);
@@ -3818,6 +3888,9 @@ async function adicionarGastoMeta(){
 function renderGastoMeta(lancamentos, total){
   const totalEl = document.getElementById('gt-meta-total-display');
   if(totalEl) totalEl.textContent = 'R$ '+(total||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  // Sincroniza automaticamente com o campo Meta (Ads) no Balanço
+  const dMetaAds = document.getElementById('d-meta-ads');
+  if(dMetaAds){ dMetaAds.value = total > 0 ? total.toFixed(2) : ''; renderBalanco(); }
   const atualEl = document.getElementById('gt-meta-atualizado');
   if(atualEl && lancamentos && lancamentos.length){
     const ult = new Date(lancamentos[lancamentos.length-1].data);
@@ -4188,8 +4261,9 @@ function renderPagamentos(){
 // ── PEDIDOS ──
 function renderPedidos(elId, maxN){
   const el=document.getElementById(elId);
-  const lista=vPeriodo().slice(0,maxN);
-  if(!lista.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🛍️</span><strong>Nenhum pedido ainda</strong><br>Registre sua primeira venda!<button class="vazio-cta" onclick="showTab(\'venda\',document.querySelector(\'[onclick*=venda]\'))">➕ Nova Venda</button></div>'; return; }
+  let lista=vPeriodo().slice(0,maxN);
+  if(filtroSoEnvios && elId==='listFull') lista = lista.filter(v=>v.envio===true||v.envio==='true');
+  if(!lista.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🛍️</span><strong>'+(filtroSoEnvios?'Nenhum envio neste período':'Nenhum pedido ainda')+'</strong>'+(filtroSoEnvios?'':'<br>Registre sua primeira venda!<button class="vazio-cta" onclick="showTab(\'venda\',document.querySelector(\'[onclick*=venda]\'))">➕ Nova Venda</button>')+'</div>'; return; }
   const scls={'Pago':'s-ok','Enviado':'s-env','Pendente':'s-pend','Cancelado':'s-canc'};
   const isDono=modoAtual==='dono';
   el.innerHTML=lista.map((v,i)=>{
@@ -4198,10 +4272,11 @@ function renderPedidos(elId, maxN){
     const temCusto=v.totalC>0;
     const lucroOk=(v.lucro||0)>=0;
     const regPor=v.registradoPor==='vendedora'?'<span style="font-size:10px;color:var(--sub)"> · 👩</span>':'';
+    const envioBadge=(v.envio===true||v.envio==='true')?'<span style="font-size:10px;font-weight:800;background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:1px 6px;margin-left:4px">📦 Envio</span>':'';
     return `<div class="pedido-item">
       <div class="pedido-header" onclick="${isDono?`toggleDet('det-${elId}-${i}')`:``}">
         <div class="ava" style="background:${cor}">${in2}</div>
-        <div class="p-info"><div class="p-nome">${v.cli}${regPor}</div><div class="p-desc">${v.prod}${v.tam?' · T.'+v.tam:''} · ${data} · ${v.pag}</div></div>
+        <div class="p-info"><div class="p-nome">${v.cli}${regPor}${envioBadge}</div><div class="p-desc">${v.prod}${v.tam?' · T.'+v.tam:''} · ${data} · ${v.pag}</div></div>
         <div class="p-right">
           ${isDono?`<div style="display:flex;gap:4px;margin-bottom:3px">
             <button onclick="event.stopPropagation();abrirEditModal('${v.id}')" style="background:var(--azul);border:none;color:#fff;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:800;cursor:pointer">✏️ Editar</button>
@@ -4288,8 +4363,12 @@ function renderBalanco(){
   document.getElementById('bf-lucro-bruto').textContent=brl(fat-cvTotal);
   document.getElementById('bf-op').textContent=brl(despOp);
   document.getElementById('bf-sobra').textContent=brl(sobra);
+  document.getElementById('bf-sobra').style.color = sobra >= 0 ? 'var(--verde)' : 'var(--vermelho)';
+  document.getElementById('bf-sobra').style.fontWeight = '900';
   document.getElementById('sobra-box').className='sobra-box'+(sobra<0?' neg-box':'');
-  document.getElementById('b-sobra').style.color=sobra>=0?'#fff':'#fca5a5';
+  const bSobra = document.getElementById('b-sobra');
+  bSobra.style.color = sobra >= 0 ? '#4ade80' : '#f87171';
+  bSobra.style.fontWeight = '900';
   function setM(bid,pid,vid,gid,val,meta,fmt){
     const p=pct(val,meta);
     document.getElementById(bid).style.width=p+'%';
