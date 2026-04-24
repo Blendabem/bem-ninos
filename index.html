@@ -2760,21 +2760,22 @@ function calcResumoEstoque(){
   let totalPecas = 0;
 
   precDB.forEach(p=>{
-    const custo = parseFloat(p.compra)||0;
-    const venda = parseFloat(p.precoFinal)||0;
-    // Usar qtd por idade se disponível, senão qtdEstoque geral
+    // Compatibilidade: planilha usa p.custo/p.preco, calculadora usa p.compra/p.precoFinal
+    const custo = parseFloat(p.compra||p.custo)||0;
+    const venda = parseFloat(p.precoFinal||p.preco)||0;
+
+    // Calcular qtd total UMA VEZ — via qtdPorIdade se disponível, senão qtdEstoque
+    let qtdTotal = 0;
     if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).length > 0){
-      const qtdTotal = Object.values(p.qtdPorIdade).reduce((s,v)=>s+(parseInt(v)||0),0);
-      totalCusto += custo * qtdTotal;
-      totalVenda += venda * qtdTotal;
-      totalPecas += qtdTotal;
+      qtdTotal = Object.values(p.qtdPorIdade).reduce((s,v)=>s+(parseInt(v)||0), 0);
     } else {
-      const qtd = parseInt(p.qtdEstoque)||0;
-      if(qtd <= 0) return;
-      totalCusto += custo * qtd;
-      totalVenda += venda * qtd;
-      totalPecas += qtd;
+      qtdTotal = parseInt(p.qtdEstoque)||0;
     }
+    if(qtdTotal <= 0) return;
+
+    totalCusto += custo * qtdTotal;
+    totalVenda += venda * qtdTotal;
+    totalPecas += qtdTotal;
   });
 
   elCusto.textContent = brl(totalCusto);
@@ -2798,10 +2799,10 @@ function renderPrecSalvos(){
       <div class="prec-salvo-header">
         <div style="flex:1;min-width:0">
           <div class="prec-salvo-nome">${p.nome}</div>
-          ${p.modoManual
+          ${p.modoManual || (p.preco && !p.precoFinal)
             ?`<div class="prec-salvo-sub" style="color:var(--amarelo);font-weight:800">✏️ Preço inserido manualmente</div>`
-            :`<div class="prec-salvo-sub">Compra: ${brl(p.compra)} · Lucro: ${p.lucroPct}%</div>
-              <div class="prec-salvo-sub">Sem lucro: ${brl(p.semLucro)}</div>`}
+            :`<div class="prec-salvo-sub">Compra: ${brl(p.compra||p.custo||0)} · Lucro: ${p.lucroPct||0}%</div>
+              <div class="prec-salvo-sub">Sem lucro: ${brl(p.semLucro||0)}</div>`}
           ${(p.qtdEstoque !== undefined) ? `<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:3px">
             ${p.qtdEstoque === 0
               ? '<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#dc2626">⚠️ Sem estoque</span>'
@@ -2812,7 +2813,7 @@ function renderPrecSalvos(){
           </div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:10px">
-          <div class="prec-salvo-preco">${brl(p.precoFinal)}</div>
+          <div class="prec-salvo-preco">${brl(p.precoFinal||p.preco||0)}</div>
           <div style="display:flex;gap:6px;margin-top:6px;justify-content:flex-end">
             <button class="btn btn-sm" style="background:var(--azul);color:#fff;padding:4px 10px" onclick="editarPrec('${p.id}')">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="deletarPrec('${p.id}')">🗑</button>
@@ -3249,13 +3250,19 @@ function editarPrec(prodId){
   if(p.modoManual){
     // Modo manual
     setModoPrec('manual');
-    document.getElementById('p-val-manual').value = p.precoFinal;
-    document.getElementById('p-custo-manual').value = p.compra||0;
+    document.getElementById('p-val-manual').value = p.precoFinal||p.preco||'';
+    document.getElementById('p-custo-manual').value = p.compra||p.custo||0;
     if(p.foto) document.getElementById('p-foto-url-manual').value = p.foto;
+  } else if(p.preco && !p.precoFinal){
+    // Produto importado da planilha — usa modo manual com os valores da planilha
+    setModoPrec('manual');
+    document.getElementById('p-val-manual').value = p.preco||'';
+    document.getElementById('p-custo-manual').value = p.custo||0;
+    if(p.foto) document.getElementById('p-foto-url-manual').value = p.foto||'';
   } else {
     // Modo calculadora
     setModoPrec('calc');
-    document.getElementById('p-compra').value   = p.compra||0;
+    document.getElementById('p-compra').value   = p.compra||p.custo||0;
     document.getElementById('p-despesa').value  = p.despesa||0;
     document.getElementById('p-salario').value  = p.salario||0;
     document.getElementById('p-cartao').value   = p.cartaoPct||0;
@@ -3264,7 +3271,7 @@ function editarPrec(prodId){
     document.getElementById('p-brinde').value   = p.brinde||0;
     document.getElementById('p-comissao').value = p.comissaoPct||0;
     document.getElementById('p-lucro').value    = p.lucroPct||0;
-    if(p.foto) document.getElementById('p-foto-url').value = p.foto;
+    if(p.foto) document.getElementById('p-foto-url').value = p.foto||'';
     calcPreco();
   }
 
