@@ -321,6 +321,7 @@ textarea{resize:none;height:60px}
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -582,7 +583,18 @@ textarea{resize:none;height:60px}
           </div>
         </div>
 
-        <button class="btn btn-primary" onclick="registrarVenda()">✅ Registrar Venda</button>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" style="flex:1" onclick="registrarVenda()">✅ Registrar Venda</button>
+          <button class="btn" style="flex:1;background:#F59E0B;color:#fff;font-weight:800" onclick="salvarOrcamento()">📋 Salvar como Orçamento</button>
+        </div>
+
+        <!-- ORÇAMENTOS PENDENTES -->
+        <div id="orcamentosBox" style="margin-top:16px;display:none">
+          <div style="font-size:13px;font-weight:800;color:#92400e;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+            <span>📋</span> Orçamentos Pendentes <span id="orcamentosCount" style="background:#F59E0B;color:#fff;border-radius:20px;padding:1px 8px;font-size:11px"></span>
+          </div>
+          <div id="orcamentosList"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -815,9 +827,43 @@ textarea{resize:none;height:60px}
         </div>
       </div>
 
+      <!-- IMPORTAR PLANILHA -->
+      <div class="card" id="cardImportPlanilha">
+        <div class="card-title"><span class="dot" style="background:var(--amarelo)"></span>📥 Importar Planilha de Produtos</div>
+        <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Selecione a planilha <strong>.xlsx</strong> preenchida. Os produtos serão salvos no Firebase automaticamente.</div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label for="inputImportXlsx" class="btn btn-secondary" style="cursor:pointer;margin:0">📂 Escolher Arquivo</label>
+          <input type="file" id="inputImportXlsx" accept=".xlsx" style="display:none">
+          <span id="importXlsxNome" style="font-size:12px;color:var(--sub);font-style:italic">Nenhum arquivo selecionado</span>
+        </div>
+        <div id="importPreviewBox" style="display:none;margin-top:12px">
+          <div style="font-size:12px;font-weight:800;color:var(--azul);margin-bottom:6px" id="importPreviewCount"></div>
+          <div id="importPreviewTabela" style="overflow-x:auto;max-height:200px;overflow-y:auto;border-radius:8px;border:1.5px solid #D8DEFF"></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="btnConfirmarImport" style="background:var(--verde)">✅ Confirmar e Importar</button>
+            <button class="btn btn-secondary" id="btnCancelarImport">✕ Cancelar</button>
+          </div>
+        </div>
+        <div id="importProgressBox" style="display:none;margin-top:12px">
+          <div style="background:#f0f4ff;border-radius:10px;padding:10px 14px">
+            <div style="font-size:12px;font-weight:800;color:var(--azul);margin-bottom:6px" id="importProgressMsg">Importando...</div>
+            <div style="background:#D8DEFF;border-radius:6px;height:8px;overflow:hidden">
+              <div id="importProgressBar" style="background:var(--azul);height:100%;width:0%;transition:width .3s"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- PRECIFICAÇÕES SALVAS -->
       <div class="card">
-        <div class="card-title"><span class="dot" style="background:var(--verde)"></span>Produtos Precificados</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px">
+          <div class="card-title" style="margin-bottom:0"><span class="dot" style="background:var(--verde)"></span>Produtos Precificados</div>
+          <div style="position:relative;flex:1;max-width:200px">
+            <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>
+            <input id="precBusca" type="text" placeholder="Buscar..." oninput="renderPrecSalvos()"
+              style="width:100%;padding:8px 10px 8px 30px;border-radius:10px;border:2px solid var(--borda);font-size:13px;font-weight:600;outline:none;background:#f7f8fd;color:#1a1d3a">
+          </div>
+        </div>
         <div id="precSalvos"></div>
       </div>
     </div>
@@ -1107,6 +1153,30 @@ textarea{resize:none;height:60px}
         <div class="fg"><label>👩 Vendedora</label><input id="e-vend" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
       </div>
       <div class="fg"><label>➕ Outros</label><input id="e-outros" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+      <!-- anúncio -->
+      <div style="background:#eef0fb;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--azul)">📣 Anúncio</div>
+      <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
+        <label style="font-size:13px;font-weight:700;color:var(--texto);flex:1">Veio de anúncio?</label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="e-anuncio" style="width:16px;height:16px;accent-color:var(--azul)">
+          <span style="font-size:12px;font-weight:700;color:var(--sub)">Sim</span>
+        </label>
+      </div>
+      <div id="e-anuncio-extra" style="display:none">
+        <div class="form-row">
+          <div class="fg"><label>📌 Nome do Anúncio/Campanha</label><input id="e-anuncio-nome" type="text" placeholder="Ex: Black Friday"></div>
+          <div class="fg"><label>📱 Plataforma</label>
+            <select id="e-anuncio-plat">
+              <option value="">Selecione</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="TikTok">TikTok</option>
+              <option value="WhatsApp">WhatsApp</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <!-- resumo rápido -->
       <div style="background:#f7f8fd;border-radius:10px;padding:10px 12px;display:flex;justify-content:space-between;font-size:13px;font-weight:800">
         <span style="color:var(--sub)">💸 Custo Total</span><span id="er-custo" class="neg">R$ 0,00</span>
@@ -1466,7 +1536,7 @@ window.addEventListener('DOMContentLoaded', function(){
   snap(col(db,'ads'), function(s){
     adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
     adsDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual==='dono') renderAnuncios();
+    if(modoAtual==='dono' || modoAtual==='gestor') renderAnuncios();
   });
   snap(col(db,'vendas'), function(s){
     vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
@@ -1506,6 +1576,16 @@ window.addEventListener('DOMContentLoaded', function(){
       }
       if(d.id==='metas'){
         if(data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
+      }
+      // Lançamentos Meta Ads — sincroniza para gestor e dono
+      if(d.id && d.id.startsWith('meta_gasto_')){
+        var mesKey = d.id.replace('meta_gasto_','');
+        var lancs = data.lancamentos || [];
+        localStorage.setItem('bn_meta_lanc_'+mesKey, JSON.stringify(lancs));
+        // Se for o mês atual, atualiza a tela
+        if(mesKey === dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
+          renderGastoMeta(lancs, data.valor||0);
+        }
       }
     });
   });
@@ -2052,11 +2132,206 @@ async function registrarVenda(){
     setLastSaved();
     showToast('✅ Venda registrada!');
     mostrarResumoVenda(venda);
+    // Baixa automática no estoque
+    await baixarEstoquePorVenda(itensValidos);
   } else {
     showToast('❌ Erro ao salvar. Tente novamente.','#dc2626');
   }
   pMes=new Date().getMonth(); pAno=new Date().getFullYear();
   atualizarLabel(); carregarDespesas();
+}
+
+// ══════════════════════════════════════════
+// ORÇAMENTOS
+// ══════════════════════════════════════════
+let orcamentosDB = JSON.parse(localStorage.getItem('bn_orcamentos')||'[]');
+
+function salvarOrcamento(){
+  const cli = document.getElementById('f-cli').value.trim();
+  const isDono = modoAtual==='dono';
+  const itensValidos = itensVenda.filter(x=>x.prod&&x.val>0);
+  if(!itensValidos.length){ showToast('⚠️ Adicione ao menos 1 produto!','#F26522'); return; }
+  if(!cli){ showToast('⚠️ Preencha o nome do cliente!','#F26522'); return; }
+
+  const val = isDono ? getN('f-val') : getN('f-val-v');
+  const prod = itensValidos.map(x=> x.qtd>1?`${x.qtd}x ${x.prod}${x.tam?' T.'+x.tam:''}`:
+    `${x.prod}${x.tam?' T.'+x.tam:''}`).join(', ');
+
+  const orc = {
+    id: 'orc_' + Date.now(),
+    data: new Date().toISOString(),
+    cli,
+    tel: document.getElementById('f-tel').value.trim(),
+    cpf: document.getElementById('f-cpf')?.value.trim()||'',
+    cep: document.getElementById('f-cep')?.value.trim()||'',
+    endereco: document.getElementById('f-endereco')?.value.trim()||'',
+    prod,
+    itens: itensValidos,
+    cidade: document.getElementById('f-cidade').value.trim(),
+    pag: document.getElementById('f-pag').value,
+    obs: document.getElementById('f-obs').value.trim(),
+    val: val||0,
+    anuncio: vendaVeioDeAnuncio,
+    anuncioNome: vendaVeioDeAnuncio?(document.getElementById('f-anuncio-nome').value.trim()||'Anúncio'):'',
+    anuncioCusto: vendaVeioDeAnuncio?(parseFloat(document.getElementById('f-anuncio-custo').value)||0):0,
+    anuncioPlat: vendaVeioDeAnuncio?document.getElementById('f-anuncio-plat').value:'',
+    vendedora1: vendaVendedora1,
+    registradoPor: modoAtual
+  };
+
+  if(isDono){
+    const taxaPct=getN('f-taxa'), taxaVal=(val||0)*(taxaPct/100);
+    const custo=getN('f-custo'), emb=getN('f-emb'), uber=getN('f-uber'),
+          frete=getN('f-frete'), vend=getN('f-vend'), outros=getN('f-outros');
+    const totalC=custo+emb+taxaVal+vend+outros;
+    Object.assign(orc,{custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:(val||0)-totalC});
+  }
+
+  orcamentosDB.unshift(orc);
+  localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
+  showToast('📋 Orçamento salvo!','#F59E0B');
+  renderOrcamentos();
+}
+
+function renderOrcamentos(){
+  const box  = document.getElementById('orcamentosBox');
+  const list = document.getElementById('orcamentosList');
+  const cnt  = document.getElementById('orcamentosCount');
+  if(!box||!list) return;
+
+  // Filtra por perfil: vendedora vê só os próprios; dono/gestor vê todos
+  const isDono = modoAtual==='dono';
+  const isVend = modoAtual==='vendedora';
+  const visiveis = orcamentosDB.filter(o => isDono || (isVend && o.registradoPor==='vendedora'));
+
+  if(!visiveis.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  cnt.textContent = visiveis.length;
+
+  list.innerHTML = visiveis.map(o=>{
+    const dt = new Date(o.data);
+    const dtStr = dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}) +
+                  ' ' + dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+    const valStr = o.val ? `R$ ${o.val.toFixed(2).replace('.',',')}` : '—';
+    return `
+      <div style="background:#fffbeb;border:1.5px solid #FDE68A;border-radius:12px;padding:12px 14px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:800;color:#92400e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">👤 ${o.cli}</div>
+            <div style="font-size:11px;color:#b45309;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🛍️ ${o.prod}</div>
+            <div style="font-size:11px;color:#b45309;margin-top:2px">💲 ${valStr} · 🕐 ${dtStr}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+            <button onclick="confirmarOrcamento('${o.id}')"
+              style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">✅ Confirmar Venda</button>
+            <button onclick="excluirOrcamento('${o.id}')"
+              style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">🗑 Excluir</button>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function confirmarOrcamento(id){
+  const idx = orcamentosDB.findIndex(o=>o.id===id);
+  if(idx<0) return;
+  const orc = orcamentosDB[idx];
+
+  // Monta venda a partir do orçamento
+  const venda = {
+    ...orc,
+    id: undefined,
+    data: new Date().toISOString(),
+    status: orc.status || 'Pago'
+  };
+  delete venda.id;
+
+  const btnEl = document.querySelector(`[onclick="confirmarOrcamento('${id}')"]`);
+  if(btnEl){ btnEl.disabled=true; btnEl.textContent='Salvando...'; }
+
+  const ok = await fbSalvarVenda(venda);
+  if(ok !== false){
+    // Remove da lista
+    orcamentosDB.splice(idx,1);
+    localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
+    showToast('✅ Venda confirmada!','#16a34a');
+    mostrarResumoVenda(venda);
+    await baixarEstoquePorVenda(orc.itens||[]);
+    renderOrcamentos();
+    setLastSaved();
+  } else {
+    if(btnEl){ btnEl.disabled=false; btnEl.textContent='✅ Confirmar Venda'; }
+  }
+}
+
+function excluirOrcamento(id){
+  orcamentosDB = orcamentosDB.filter(o=>o.id!==id);
+  localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
+  showToast('🗑 Orçamento removido','#64748b');
+  renderOrcamentos();
+}
+
+// ══════════════════════════════════════════
+// BAIXA AUTOMÁTICA DE ESTOQUE
+// ══════════════════════════════════════════
+async function baixarEstoquePorVenda(itens){
+  if(!itens || !itens.length) return;
+  const avisos = [];
+
+  for(const item of itens){
+    const nomeProd = (item.prod||'').trim();
+    if(!nomeProd) continue;
+    const qtdVendida = parseInt(item.qtd) || 1;
+
+    // Busca o produto no precDB pelo nome (case insensitive)
+    const idx = precDB.findIndex(p => p.nome.toLowerCase() === nomeProd.toLowerCase());
+    if(idx < 0) continue; // produto não encontrado na precificação
+
+    const p = precDB[idx];
+    if(!p.qtdPorIdade) p.qtdPorIdade = {};
+
+    // Subtrai qtdVendida do(s) slot(s) com mais estoque disponível
+    let restante = qtdVendida;
+    // Ordena idades por qtd desc para descontar das maiores primeiro
+    const slots = Object.entries(p.qtdPorIdade)
+      .filter(([,v]) => v > 0)
+      .sort((a,b) => b[1]-a[1]);
+
+    for(const [key] of slots){
+      if(restante <= 0) break;
+      const disponivel = p.qtdPorIdade[key] || 0;
+      const desconto = Math.min(disponivel, restante);
+      p.qtdPorIdade[key] = disponivel - desconto;
+      restante -= desconto;
+    }
+
+    // Recalcula qtdEstoque total
+    p.qtdEstoque = Object.values(p.qtdPorIdade).reduce((a,b)=>a+b, 0);
+
+    // Avisa se zerou ou ficou abaixo de 2
+    if(p.qtdEstoque === 0){
+      avisos.push('⚠️ ' + p.nome + ': estoque zerado!');
+    } else if(p.qtdEstoque <= 2){
+      avisos.push('⚠️ ' + p.nome + ': apenas ' + p.qtdEstoque + ' unidade(s) restante(s)');
+    }
+
+    // Salva no Firebase e localStorage
+    precDB[idx] = p;
+    if(typeof fbSalvarPrec === 'function') await fbSalvarPrec(p);
+  }
+
+  localStorage.setItem('bn_prec', JSON.stringify(precDB));
+  if(typeof renderPrecificacoes === 'function') renderPrecificacoes();
+  if(typeof renderResumoEstoque === 'function') renderResumoEstoque();
+
+  // Exibe avisos de estoque baixo
+  if(avisos.length){
+    setTimeout(()=>{
+      avisos.forEach((msg, i) => {
+        setTimeout(()=> showToast(msg, '#F26522'), i * 1800);
+      });
+    }, 1200);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -2390,7 +2665,11 @@ function renderPrecSalvos(){
   calcResumoEstoque();
   const el=document.getElementById('precSalvos');
   if(!precDB.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🏷️</span><strong>Nenhum produto ainda</strong><br>Use a calculadora acima para precificar</div>'; return; }
-  const precOrdenado = [...precDB].sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const busca = (document.getElementById('precBusca')?.value||'').toLowerCase().trim();
+  const precOrdenado = [...precDB]
+    .filter(p => !busca || p.nome.toLowerCase().includes(busca))
+    .sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  if(!precOrdenado.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🔍</span>Nenhum produto encontrado para "<strong>'+busca+'</strong>"</div>'; return; }
   el.innerHTML=precOrdenado.map((p,i)=>`
     <div class="prec-salvo-item">
       ${p.foto?`<img src="${p.foto}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px" onerror="this.style.display='none'" onload="this.style.display='block'">`:''}
@@ -2401,6 +2680,14 @@ function renderPrecSalvos(){
             ?`<div class="prec-salvo-sub" style="color:var(--amarelo);font-weight:800">✏️ Preço inserido manualmente</div>`
             :`<div class="prec-salvo-sub">Compra: ${brl(p.compra)} · Lucro: ${p.lucroPct}%</div>
               <div class="prec-salvo-sub">Sem lucro: ${brl(p.semLucro)}</div>`}
+          ${(p.qtdEstoque !== undefined) ? `<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:3px">
+            ${p.qtdEstoque === 0
+              ? '<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:#fee2e2;color:#dc2626">⚠️ Sem estoque</span>'
+              : (p.qtdPorIdade && Object.keys(p.qtdPorIdade).filter(k=>p.qtdPorIdade[k]>0).length
+                ? Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0).map(([k,v])=>`<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:10px;background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'}">${k}: ${v}</span>`).join('')
+                : `<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:${p.qtdEstoque<=3?'#fff7e0':'#e8f9e0'};color:${p.qtdEstoque<=3?'#b08000':'#2a7a00'}">✅ ${p.qtdEstoque} peças</span>`)
+            }
+          </div>` : ''}
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:10px">
           <div class="prec-salvo-preco">${brl(p.precoFinal)}</div>
@@ -3319,6 +3606,13 @@ function abrirEditModal(vendaId){
   document.getElementById('e-frete').value = v.frete||0;
   document.getElementById('e-vend').value  = v.vend||0;
   document.getElementById('e-outros').value= v.outros||0;
+  // anúncio
+  const eAnuncio = document.getElementById('e-anuncio');
+  const eAnuncioExtra = document.getElementById('e-anuncio-extra');
+  eAnuncio.checked = !!v.anuncio;
+  eAnuncioExtra.style.display = v.anuncio ? 'block' : 'none';
+  document.getElementById('e-anuncio-nome').value = v.anuncioNome||'';
+  document.getElementById('e-anuncio-plat').value = v.anuncioPlat||'';
   calcEditCusto();
   document.getElementById('editModal').style.display='flex';
 }
@@ -3361,7 +3655,10 @@ async function salvarEdicao(){
     cli:document.getElementById('e-cli').value.trim(),
     prod:document.getElementById('e-prod').value.trim(),
     val, status:document.getElementById('e-status').value,
-    custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:val-totalC
+    custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:val-totalC,
+    anuncio: document.getElementById('e-anuncio').checked,
+    anuncioNome: document.getElementById('e-anuncio-nome').value.trim(),
+    anuncioPlat: document.getElementById('e-anuncio-plat').value
   };
   // Atualiza no Firestore usando o ID do documento diretamente
   console.log('Salvando edicao venda...', atualizado);
@@ -3493,7 +3790,7 @@ async function excluirVendaDireto(vendaId){
 async function salvarCustoAdGestor(){ /* não usado mais */ }
 
 // Salvar gasto Meta Ads no Firebase — sistema de lançamentos
-function adicionarGastoMeta(){
+async function adicionarGastoMeta(){
   const inp = document.getElementById('gt-meta-novo');
   const v = parseFloat(inp?.value)||0;
   if(v <= 0){ showToast('⚠️ Informe um valor','#F26522'); return; }
@@ -3507,7 +3804,11 @@ function adicionarGastoMeta(){
   localStorage.setItem('bn_meta_lanc_'+mes, JSON.stringify(lancamentos));
   // Salvar total no Firebase
   const total = lancamentos.reduce((s,l)=>s+(l.valor||0), 0);
-  fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: agora });
+  const ok = await fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: agora });
+  if(ok === false){
+    showToast('❌ Erro ao salvar no Firebase. Verifique a conexão.','#dc2626');
+    return;
+  }
   // Limpar input e atualizar
   inp.value = '';
   renderGastoMeta(lancamentos, total);
@@ -3538,14 +3839,14 @@ function renderGastoMeta(lancamentos, total){
   }
 }
 
-function removerGastoMeta(idx){
+async function removerGastoMeta(idx){
   const mes = dpKey();
   let lancamentos = [];
   try { lancamentos = JSON.parse(localStorage.getItem('bn_meta_lanc_'+mes)||'[]'); } catch(e){}
   lancamentos.splice(idx, 1);
   localStorage.setItem('bn_meta_lanc_'+mes, JSON.stringify(lancamentos));
   const total = lancamentos.reduce((s,l)=>s+(l.valor||0), 0);
-  fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: new Date().toISOString() });
+  await fbSalvarConfig('meta_gasto_'+mes, { valor: total, lancamentos: lancamentos, atualizado: new Date().toISOString() });
   renderGastoMeta(lancamentos, total);
 }
 
@@ -3835,6 +4136,7 @@ function renderAll(){
   renderCatalogo();
   renderRelatorioVendedora();
   renderGestor();
+  renderOrcamentos();
   if(modoAtual==='dono'){
     renderProdutos(); renderClientes(); renderBalanco();
     renderEstoque(); renderPrecSalvos(); renderClientesFull();
@@ -4139,10 +4441,219 @@ function removerFundoBranco(imgEl, tolerancia=30){
   }
 
   // Garantir que roda após o DOM
+  // Toggle anúncio no modal de edição
+  const eAnuncioChk = document.getElementById('e-anuncio');
+  if(eAnuncioChk){
+    eAnuncioChk.addEventListener('change', function(){
+      document.getElementById('e-anuncio-extra').style.display = this.checked ? 'block' : 'none';
+    });
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', ligarBotoesLogin);
   } else {
     ligarBotoesLogin();
+  }
+})();
+</script>
+
+<!-- ══ IMPORTAÇÃO DE PLANILHA ══ -->
+<script>
+(function(){
+  var _importDados = [];
+
+  function initImport(){
+    var inp = document.getElementById('inputImportXlsx');
+    var btnConf = document.getElementById('btnConfirmarImport');
+    var btnCanc = document.getElementById('btnCancelarImport');
+    if(!inp) return;
+
+    inp.addEventListener('change', function(e){
+      var file = e.target.files[0];
+      if(!file) return;
+      document.getElementById('importXlsxNome').textContent = file.name;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        try {
+          var wb = XLSX.read(ev.target.result, {type:'binary'});
+          var ws = wb.Sheets[wb.SheetNames[0]];
+          var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+          _importDados = parsePlanilha(rows);
+          mostrarPreview(_importDados);
+        } catch(err){
+          showToast('❌ Erro ao ler planilha: ' + err.message, '#dc2626');
+        }
+      };
+      reader.readAsBinaryString(file);
+    });
+
+    btnConf && btnConf.addEventListener('click', confirmarImport);
+    btnCanc && btnCanc.addEventListener('click', cancelarImport);
+  }
+
+  function parsePlanilha(rows){
+    var IDADES = ['1','2','3','4','6','8','10','12','14','16'];
+    var TAMANHOS = ['P','M','G','GG'];
+    var colMap = {
+      nome: ['Nome do Produto *','Nome do Produto','nome'],
+      preco: ['Preço Final (R$) *','Preço Final (R$)','Preço Final','preco','preço'],
+      custo: ['Custo da Peça (R$)','Custo','custo'],
+      tecido: ['Tecido / Composição','Tecido','tecido'],
+      cores: ['Cores','cores'],
+      uso: ['Uso  (Dia a dia / Passeio / Ambos)','Uso (Dia a dia / Passeio / Ambos)','Uso','uso'],
+      idades: ['Idades/Tamanhos  (ex: 1,2,4 ou P,M,G)','Idades/Tamanhos','Idades','idades'],
+      detalhes: ['Detalhes / Obs.','Detalhes','detalhes'],
+      foto: ['Link da Foto','Link Foto','foto']
+    };
+
+    function getCol(row, keys){
+      for(var i=0;i<keys.length;i++){
+        if(row[keys[i]] !== undefined && row[keys[i]] !== '') return row[keys[i]];
+      }
+      return '';
+    }
+
+    var produtos = [];
+    rows.forEach(function(row){
+      var nome = String(getCol(row, colMap.nome)).trim();
+      if(!nome) return;
+      var preco = parseFloat(String(getCol(row, colMap.preco)).replace(',','.')) || 0;
+      if(!preco) return; // obrigatório
+      var custo = parseFloat(String(getCol(row, colMap.custo)).replace(',','.')) || 0;
+      var tecido = String(getCol(row, colMap.tecido)).trim();
+      var cores = String(getCol(row, colMap.cores)).trim();
+      var uso = String(getCol(row, colMap.uso)).trim();
+      var idadesStr = String(getCol(row, colMap.idades)).trim();
+      var detalhes = String(getCol(row, colMap.detalhes)).trim();
+      var foto = String(getCol(row, colMap.foto)).trim();
+
+      // Montar qtdPorIdade a partir das colunas Qtd. X
+      var qtdPorIdade = {};
+      var idadesList = [];
+      IDADES.forEach(function(id){
+        var key = 'Qtd. ' + id;
+        var val = parseInt(row[key]) || 0;
+        if(val > 0){ qtdPorIdade[id] = val; idadesList.push(id); }
+      });
+      TAMANHOS.forEach(function(t){
+        var key = 'Qtd. ' + t;
+        var val = parseInt(row[key]) || 0;
+        if(val > 0){ qtdPorIdade[t] = val; idadesList.push(t); }
+      });
+
+      // Se não veio qtd por coluna, tenta parsear a coluna Idades/Tamanhos
+      if(idadesList.length === 0 && idadesStr){
+        idadesStr.split(',').forEach(function(s){
+          var v = s.trim();
+          if(v){ idadesList.push(v); qtdPorIdade[v] = 1; }
+        });
+      }
+
+      var qtdTotal = Object.values(qtdPorIdade).reduce(function(a,b){return a+b;},0) || idadesList.length || 1;
+
+      produtos.push({
+        id: 'p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5),
+        nome: nome,
+        preco: preco,
+        custo: custo,
+        tecido: tecido,
+        cores: cores,
+        uso: uso,
+        detalhes: detalhes,
+        foto: foto,
+        idades: idadesList,
+        qtdPorIdade: qtdPorIdade,
+        qtdEstoque: qtdTotal
+      });
+    });
+    return produtos;
+  }
+
+  function mostrarPreview(dados){
+    var box = document.getElementById('importPreviewBox');
+    var count = document.getElementById('importPreviewCount');
+    var tabela = document.getElementById('importPreviewTabela');
+    if(!box) return;
+    count.textContent = '✅ ' + dados.length + ' produto(s) encontrado(s). Confira abaixo e clique em Confirmar:';
+    var html = '<table style="width:100%;border-collapse:collapse;font-size:11px">';
+    html += '<thead><tr style="background:#EEF2FF">';
+    html += '<th style="padding:6px 8px;text-align:left;font-weight:800;color:var(--azul)">Nome</th>';
+    html += '<th style="padding:6px 8px;text-align:right;font-weight:800;color:var(--azul)">Preço</th>';
+    html += '<th style="padding:6px 8px;text-align:right;font-weight:800;color:var(--azul)">Custo</th>';
+    html += '<th style="padding:6px 8px;font-weight:800;color:var(--azul)">Idades/Tam.</th>';
+    html += '</tr></thead><tbody>';
+    dados.forEach(function(p, i){
+      var bg = i%2===0?'#fff':'#f7f8fd';
+      html += '<tr style="background:'+bg+'">';
+      html += '<td style="padding:5px 8px;font-weight:700">'+p.nome+'</td>';
+      html += '<td style="padding:5px 8px;text-align:right;color:var(--verde)">R$ '+p.preco.toFixed(2).replace('.',',')+'</td>';
+      html += '<td style="padding:5px 8px;text-align:right;color:var(--sub)">'+(p.custo?'R$ '+p.custo.toFixed(2).replace('.',','):'-')+'</td>';
+      html += '<td style="padding:5px 8px;color:var(--sub)">'+p.idades.join(', ')+'</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    tabela.innerHTML = html;
+    box.style.display = 'block';
+  }
+
+  async function confirmarImport(){
+    if(!_importDados.length) return;
+    var box = document.getElementById('importPreviewBox');
+    var progBox = document.getElementById('importProgressBox');
+    var progMsg = document.getElementById('importProgressMsg');
+    var progBar = document.getElementById('importProgressBar');
+    box.style.display = 'none';
+    progBox.style.display = 'block';
+
+    var total = _importDados.length;
+    var ok = 0, erros = 0;
+
+    for(var i=0; i<_importDados.length; i++){
+      var p = _importDados[i];
+      progMsg.textContent = 'Salvando ' + (i+1) + ' de ' + total + ': ' + p.nome;
+      progBar.style.width = Math.round(((i+1)/total)*100) + '%';
+      try {
+        // Adiciona ao precDB local
+        var idx = precDB.findIndex(function(x){ return x.nome === p.nome; });
+        if(idx >= 0){ precDB[idx] = p; } else { precDB.unshift(p); }
+        localStorage.setItem('bn_prec', JSON.stringify(precDB));
+        // Salva no Firebase
+        if(typeof fbSalvarPrec === 'function') await fbSalvarPrec(p);
+        ok++;
+      } catch(e){
+        erros++;
+        console.error('Erro ao importar', p.nome, e);
+      }
+      // Pequena pausa para não sobrecarregar Firebase
+      await new Promise(function(r){ setTimeout(r, 120); });
+    }
+
+    progMsg.textContent = '✅ Importação concluída! ' + ok + ' produto(s) importado(s)' + (erros?' | ⚠️ '+erros+' erro(s)':'') + '.';
+    progBar.style.width = '100%';
+    progBar.style.background = 'var(--verde)';
+    showToast('✅ ' + ok + ' produtos importados com sucesso!', '#16a34a');
+    if(typeof renderPrecificacoes === 'function') renderPrecificacoes();
+    if(typeof renderResumoEstoque === 'function') renderResumoEstoque();
+
+    // Reset input
+    document.getElementById('inputImportXlsx').value = '';
+    document.getElementById('importXlsxNome').textContent = 'Nenhum arquivo selecionado';
+    _importDados = [];
+    setTimeout(function(){ progBox.style.display = 'none'; }, 4000);
+  }
+
+  function cancelarImport(){
+    _importDados = [];
+    document.getElementById('importPreviewBox').style.display = 'none';
+    document.getElementById('importXlsxNome').textContent = 'Nenhum arquivo selecionado';
+    document.getElementById('inputImportXlsx').value = '';
+  }
+
+  // Inicializar após DOM
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initImport);
+  } else {
+    initImport();
   }
 })();
 </script>
