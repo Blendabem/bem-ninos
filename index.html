@@ -2291,6 +2291,26 @@ function salvarOrcamento(){
   localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
   showToast('📋 Orçamento salvo!','#F59E0B');
   mostrarResumoVenda(orc);
+
+  // Limpar formulário igual ao registrar venda
+  ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco','f-frete-vend'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  if(isDono){
+    ['f-val','f-custo','f-emb','f-taxa','f-uber','f-frete','f-vend','f-outros','f-anuncio-nome'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  } else {
+    const fvv=document.getElementById('f-val-v'); if(fvv) fvv.value='';
+  }
+  document.getElementById('f-pag').value='';
+  const dvEl=document.getElementById('f-data-venda'); if(dvEl) dvEl.value=new Date().toISOString().split('T')[0];
+  document.getElementById('sugestoesCliente').style.display='none';
+  resetItens();
+  toggleAnuncio(false);
+  vendaVeioDeAnuncio=false;
+  vendaVendedora1=false;
+  const span=document.getElementById('toggleVend1'); if(span){ span.style.background='#ccc'; span.style.transform=''; }
+  const comBox=document.getElementById('comissaoVendBox'); if(comBox) comBox.style.display='none';
+  resetEnvio();
+  if(isDono) calcCusto();
+
   renderOrcamentos();
 }
 
@@ -4289,22 +4309,19 @@ function toggleAnuncio(sim){
 async function salvarCustoAd(){ /* removido — use a aba Anúncios */ }
 
 
-// renderAnuncios — delegada ao renderGestor que já tem tudo
-function renderAnuncios(){ if(modoAtual==='dono') renderGestor(); }
-
+function renderAnuncios(){
+  if(modoAtual==='dono' || modoAtual==='gestor') renderGestor();
+}
 
 function renderAll(){
-  renderKPIs(); renderGrafico(); renderPagamentos();
-  renderPedidos('listResumo',8);
-  renderPedidos('listFull',999);
-  renderCatalogo();
-  renderRelatorioVendedora();
-  renderGestor();
-  renderOrcamentos();
+  const fns = [renderKPIs, renderGrafico, renderPagamentos,
+    ()=>renderPedidos('listResumo',8), ()=>renderPedidos('listFull',999),
+    renderCatalogo, renderRelatorioVendedora, renderGestor, renderOrcamentos];
+  fns.forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll:',fn.name||'fn',e.message); } });
   if(modoAtual==='dono'){
-    renderProdutos(); renderClientes(); renderBalanco();
-    renderEstoque(); renderPrecSalvos(); renderClientesFull();
-    renderAnuncios(); renderNaoCadastrados();
+    [renderProdutos, renderClientes, renderBalanco, renderEstoque,
+     renderPrecSalvos, renderClientesFull, renderAnuncios, renderNaoCadastrados
+    ].forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll dono:',fn.name||'fn',e.message); } });
   }
 }
 
@@ -4462,6 +4479,7 @@ function renderBalanco(){
   const mes=vPeriodo();
   const ajuste = getAjusteManual();
   const fat = (mes.reduce((s,v)=>s+Number(v.val),0)) + (ajuste.fat||0);
+  const lucro = mes.reduce((s,v)=>s+Number(v.lucro||0),0);
   const cvTotal = (mes.reduce((s,v)=>s+Number(v.totalC||0),0)) + (ajuste.cv||0);
   const despOp=DESP_IDS.reduce((s,id)=>s+getN(id),0);
   const sobra=fat-cvTotal-despOp;
