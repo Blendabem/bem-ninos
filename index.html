@@ -3424,14 +3424,27 @@ function sugerirProdutoItem(inputEl, itemId){
   const box = document.createElement('div');
   box.id = 'prod-sug-'+itemId;
   box.style.cssText = 'position:absolute;top:100%;left:0;right:0;background:#fff;border:2px solid var(--azul);border-radius:0 0 10px 10px;z-index:300;max-height:160px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.15)';
-  box.innerHTML = sugs.map(p=>`
-    <div onclick="selecionarProdutoItem(${itemId},'${p.nome.replace(/'/g,"\\'")}',${p.precoFinal||p.preco||0},${p.compra||p.custo||0}); this.parentElement.remove()"
-      style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between">
+  box.innerHTML = sugs.map((p,i)=>`
+    <div data-idx="${i}"
+      style="padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between;align-items:center">
       <span>👕 ${p.nome}</span>
-      <div style="text-align:right">
-        <div style="color:var(--azul);font-weight:800">${brl(p.precoFinal)}</div>
-      </div>
+      <span style="color:var(--azul);font-weight:900;flex-shrink:0;margin-left:8px">${brl(p.precoFinal||p.preco||0)}</span>
     </div>`).join('');
+
+  // Usa addEventListener em vez de onclick inline — mais confiável em iOS/Android
+  box.querySelectorAll('[data-idx]').forEach(el=>{
+    const idx = parseInt(el.getAttribute('data-idx'));
+    const p = sugs[idx];
+    const handler = (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      selecionarProdutoItem(itemId, p.nome, p.precoFinal||p.preco||0, p.compra||p.custo||0);
+      box.remove();
+    };
+    el.addEventListener('mousedown', handler);
+    el.addEventListener('touchstart', handler, {passive:false});
+  });
+
   inputEl.parentElement.style.position='relative';
   inputEl.parentElement.appendChild(box);
 }
@@ -3442,16 +3455,11 @@ function selecionarProdutoItem(itemId, nome, preco, custo){
   item.prod  = nome;
   item.val   = preco;
   item.custo = custo||0;
-  // Atualiza campos visualmente sem re-render completo
-  const row = document.getElementById('item-row-'+itemId);
-  if(row){
-    const inputs = row.querySelectorAll('input');
-    inputs.forEach(inp=>{
-      if(inp.type==='text') inp.value = nome;
-      if(inp.type==='number' && inp.placeholder==='0,00') inp.value = preco;
-    });
-  }
-  // atualizarTotaisItens já cuida do f-custo automaticamente
+  // Atualiza campos pelo ID específico
+  const nomeEl = document.getElementById('item-nome-'+itemId);
+  const valEl  = document.getElementById('item-val-'+itemId);
+  if(nomeEl) nomeEl.value = nome;
+  if(valEl)  valEl.value  = preco;
   atualizarTotaisItens();
 }
 
@@ -3526,7 +3534,7 @@ function renderItens(){
       <div class="form-stack">
         <div class="fg">
           <label>Produto</label>
-          <input type="text" value="${item.prod.replace(/"/g,'&quot;')}" placeholder="Ex: Camiseta Polo Azul"
+          <input type="text" id="item-nome-${item.id}" value="${item.prod.replace(/"/g,'&quot;')}" placeholder="Ex: Camiseta Polo Azul"
             oninput="sugerirProdutoItem(this,${item.id})"
             style="font-size:14px">
         </div>
@@ -3546,7 +3554,7 @@ function renderItens(){
           </div>
           <div class="fg">
             <label>Valor unit. (R$)</label>
-            <input type="number" value="${item.val||''}" placeholder="0,00" inputmode="decimal"
+            <input type="number" id="item-val-${item.id}" value="${item.val||''}" placeholder="0,00" inputmode="decimal"
               oninput="itensVenda.find(x=>x.id===${item.id}).val=parseFloat(this.value)||0;atualizarTotaisItens()"
               style="font-size:14px">
           </div>
