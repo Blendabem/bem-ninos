@@ -1076,6 +1076,27 @@ textarea{resize:none;height:60px}
       <div class="card-title"><span class="dot" style="background:var(--verde)"></span>Resumo Final</div>
       <div class="bal-row"><span class="bal-label">💰 Faturamento</span><span class="bal-val pos" id="bf-fat">R$ 0,00</span></div>
       <div class="bal-row"><span class="bal-label">💸 Custos das Vendas</span><span class="bal-val neg" id="bf-cv">R$ 0,00</span></div>
+      <!-- Ajuste manual para meses sem dados no app -->
+      <div id="ajusteManualBox" style="display:none;background:#f0f7ff;border-radius:10px;padding:12px;margin:6px 0;border:1.5px solid #D8DEFF">
+        <div style="font-size:11px;font-weight:800;color:var(--azul);margin-bottom:8px">✏️ Ajuste manual (meses anteriores ao app)</div>
+        <div class="form-row">
+          <div class="fg">
+            <label style="font-size:11px">💰 Receita manual (R$)</label>
+            <input type="number" id="bal-receita-manual" placeholder="0,00" inputmode="decimal" oninput="renderBalanco()"
+              style="padding:8px 10px;border-radius:8px;border:2px solid var(--borda);font-size:13px;font-weight:700;width:100%;outline:none">
+          </div>
+          <div class="fg">
+            <label style="font-size:11px">💸 Custos manual (R$)</label>
+            <input type="number" id="bal-custos-manual" placeholder="0,00" inputmode="decimal" oninput="renderBalanco()"
+              style="padding:8px 10px;border-radius:8px;border:2px solid var(--borda);font-size:13px;font-weight:700;width:100%;outline:none">
+          </div>
+        </div>
+        <button class="btn btn-primary" style="margin-top:8px;font-size:12px;padding:8px" onclick="salvarAjusteManual()">💾 Salvar ajuste</button>
+      </div>
+      <button id="btnAjusteManual" onclick="toggleAjusteManual()"
+        style="width:100%;padding:7px;background:#f0f7ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;margin:4px 0">
+        ✏️ Inserir dados de meses anteriores
+      </button>
       <div class="bal-row" style="background:#e8f9e0;border-radius:8px;padding:8px 10px;margin:4px 0">
         <span class="bal-label" style="font-weight:900">📈 Lucro Bruto</span>
         <span class="bal-val pos" id="bf-lucro-bruto" style="font-size:15px">R$ 0,00</span>
@@ -2269,6 +2290,7 @@ function salvarOrcamento(){
   orcamentosDB.unshift(orc);
   localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
   showToast('📋 Orçamento salvo!','#F59E0B');
+  mostrarResumoVenda(orc);
   renderOrcamentos();
 }
 
@@ -2787,13 +2809,12 @@ function renderNaoCadastrados(){
   const count = document.getElementById('naoCadastradosCount');
   if(!card||!list) return;
 
-  // Pega todos os nomes de produtos de todas as vendas
+  // Usa apenas vendas do mês/ano atual (vPeriodo)
   const nomesVendidos = new Set();
-  vendas.forEach(v=>{
+  vPeriodo().forEach(v=>{
     if(v.itens && v.itens.length){
       v.itens.forEach(it=>{ if(it.prod && it.prod.trim()) nomesVendidos.add(it.prod.trim()); });
     } else if(v.prod){
-      // vendas antigas sem itens
       v.prod.split(',').forEach(p=>{
         const nome = p.replace(/^\d+x\s*/,'').replace(/\s*T\.\w+/,'').trim();
         if(nome) nomesVendidos.add(nome);
@@ -4407,14 +4428,53 @@ function renderClientes(){
 }
 
 // ── BALANÇO ──
+function toggleAjusteManual(){
+  const box = document.getElementById('ajusteManualBox');
+  const btn = document.getElementById('btnAjusteManual');
+  const visible = box.style.display !== 'none';
+  box.style.display = visible ? 'none' : 'block';
+  btn.textContent = visible ? '✏️ Inserir dados de meses anteriores' : '✕ Fechar ajuste';
+  if(!visible){
+    // Carrega valores salvos para o mês atual
+    const key = 'bn_ajuste_'+dpKey();
+    try { const v=JSON.parse(localStorage.getItem(key)||'{}');
+      document.getElementById('bal-receita-manual').value = v.fat||'';
+      document.getElementById('bal-custos-manual').value = v.cv||'';
+    } catch(e){}
+  }
+}
+
+function salvarAjusteManual(){
+  const key = 'bn_ajuste_'+dpKey();
+  const fat = parseFloat(document.getElementById('bal-receita-manual').value)||0;
+  const cv  = parseFloat(document.getElementById('bal-custos-manual').value)||0;
+  localStorage.setItem(key, JSON.stringify({fat, cv}));
+  showToast('💾 Ajuste salvo!','#16a34a');
+  renderBalanco();
+}
+
+function getAjusteManual(){
+  const key = 'bn_ajuste_'+dpKey();
+  try { return JSON.parse(localStorage.getItem(key)||'{}'); } catch(e){ return {}; }
+}
+
 function renderBalanco(){
   const mes=vPeriodo();
-  const fat=mes.reduce((s,v)=>s+Number(v.val),0);
-  const lucro=mes.reduce((s,v)=>s+Number(v.lucro||0),0);
-  const cvTotal=mes.reduce((s,v)=>s+Number(v.totalC||0),0);
+  const ajuste = getAjusteManual();
+  const fat = (mes.reduce((s,v)=>s+Number(v.val),0)) + (ajuste.fat||0);
+  const cvTotal = (mes.reduce((s,v)=>s+Number(v.totalC||0),0)) + (ajuste.cv||0);
   const despOp=DESP_IDS.reduce((s,id)=>s+getN(id),0);
   const sobra=fat-cvTotal-despOp;
   const margem=fat?Math.round((sobra/fat)*100):0;
+
+  // Preenche campos de ajuste se houver valor salvo
+  if(ajuste.fat||ajuste.cv){
+    const rm = document.getElementById('bal-receita-manual');
+    const cm = document.getElementById('bal-custos-manual');
+    if(rm && !rm.value) rm.value = ajuste.fat||'';
+    if(cm && !cm.value) cm.value = ajuste.cv||'';
+  }
+
   document.getElementById('b-receita').textContent=brl(fat);
   document.getElementById('b-saidas').textContent=brl(cvTotal+despOp);
   document.getElementById('b-sobra').textContent=brl(sobra);
