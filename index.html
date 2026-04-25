@@ -511,6 +511,15 @@ textarea{resize:none;height:60px}
           </div>
         </div>
 
+        <!-- Frete visível para gestoras (fora do custosBox) -->
+        <div class="dono-only" id="freteDonoBox" style="background:#f0f7ff;border-radius:10px;padding:12px;border:1.5px solid #D8DEFF">
+          <label style="font-size:12px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.4px">📬 Frete / Entrega (R$)</label>
+          <input type="number" placeholder="0,00" inputmode="decimal"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--borda);font-size:14px;font-weight:700;background:#fff;outline:none;margin-top:6px"
+            oninput="document.getElementById('f-frete').value=this.value;calcCusto()">
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;font-weight:600">💡 Cobrado do cliente — não entra no custo</div>
+        </div>
+
         <!-- MARCAÇÃO VENDEDORA -->
         <div style="background:#f7f8fd;border-radius:10px;padding:12px">
           <div style="display:flex;align-items:center;gap:10px">
@@ -1211,9 +1220,39 @@ textarea{resize:none;height:60px}
         <div class="fg"><label>Produto</label><input id="e-prod" type="text"></div>
       </div>
       <div class="form-row">
-        <div class="fg"><label>💲 Valor (R$)</label><input id="e-val" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+        <div class="fg"><label>📅 Data</label><input id="e-data" type="date"></div>
         <div class="fg"><label>Status</label>
           <select id="e-status"><option value="Pago">Pago ✅</option><option value="Enviado">Enviado 🚚</option><option value="Pendente">Pendente ⏳</option><option value="Cancelado">Cancelado ❌</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>🏙️ Cidade</label><input id="e-cidade" type="text" placeholder="Ex: Goiânia"></div>
+        <div class="fg"><label>💳 Pagamento</label>
+          <select id="e-pag">
+            <option value="">Selecione</option>
+            <option value="Pix">Pix</option>
+            <option value="Dinheiro">Dinheiro</option>
+            <option value="Débito">Débito</option>
+            <option value="Crédito">Crédito</option>
+            <option value="Boleto">Boleto</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>💲 Valor (R$)</label><input id="e-val" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+        <div class="fg"><label>📬 Frete (R$)</label><input id="e-frete" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+      </div>
+      <!-- Toggle vendedora no edit -->
+      <div style="background:#f7f8fd;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:20px">👩</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:800">Venda feita pela Vendedora?</div>
+          <div style="font-size:11px;color:var(--sub)" id="e-vend-label">Comissão: calculada automaticamente</div>
+        </div>
+        <div onclick="toggleEditVendedora()" id="e-vend-toggle"
+          style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0">
+          <span id="e-vend-toggle-bg" style="position:absolute;top:0;left:0;right:0;bottom:0;background:#ccc;border-radius:24px;transition:.3s;pointer-events:none"></span>
+          <span id="e-vend-toggle-knob" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.3s;pointer-events:none;display:block"></span>
         </div>
       </div>
       <div style="background:#eef0fb;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--azul)">💸 Custos</div>
@@ -1226,10 +1265,9 @@ textarea{resize:none;height:60px}
         <div class="fg"><label>🚗 Uber/Boy</label><input id="e-uber" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
       </div>
       <div class="form-row">
-        <div class="fg"><label>📬 Frete</label><input id="e-frete" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
-        <div class="fg"><label>👩 Vendedora</label><input id="e-vend" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+        <div class="fg"><label>👩 Comissão Vendedora (R$)</label><input id="e-vend" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
+        <div class="fg"><label>➕ Outros</label><input id="e-outros" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
       </div>
-      <div class="fg"><label>➕ Outros</label><input id="e-outros" type="number" inputmode="decimal" oninput="calcEditCusto()"></div>
       <!-- anúncio -->
       <div style="background:#eef0fb;border-radius:10px;padding:10px 12px;font-size:12px;font-weight:700;color:var(--azul)">📣 Anúncio</div>
       <div style="display:flex;align-items:center;gap:10px;padding:4px 0">
@@ -2196,6 +2234,7 @@ async function registrarVenda(){
 
   // limpar form
   ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco','f-frete-vend'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const freteDono = document.querySelector('#freteDonoBox input'); if(freteDono) freteDono.value='';
   if(isDono){
     ['f-val','f-custo','f-emb','f-taxa','f-uber','f-frete','f-vend','f-outros','f-anuncio-nome'].forEach(id=>document.getElementById(id).value='');
     const fv=document.getElementById('f-vend'); if(fv) delete fv.dataset.manual;
@@ -3145,24 +3184,8 @@ function abrirDetalhe(prodId){
     document.getElementById('prodDetalheLinkBox').style.display='none';
   }
 
-  // Informações
-  // Badge de estoque
-  const qtd = p.qtdEstoque||0;
-  const estoqueEl = document.getElementById('prodDetalheEstoque');
-  if(estoqueEl){
-    if(qtd === 0){
-      estoqueEl.innerHTML = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Sem estoque</span>';
-    } else if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).length > 0){
-      const tags = Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0)
-        .map(([k,v])=>`<span style="background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};padding:3px 10px;border-radius:16px;font-size:12px;font-weight:800;margin:2px">${k} anos: ${v} peça${v>1?'s':''}</span>`).join('');
-      estoqueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px">'+tags+'</div>';
-    } else if(qtd <= 3){
-      estoqueEl.innerHTML = '<span style="background:#fff7e0;color:#b08000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Apenas '+qtd+' peça'+(qtd>1?'s':'')+' em estoque</span>';
-    } else {
-      estoqueEl.innerHTML = '<span style="background:#e8f9e0;color:#5BBF2A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">✅ '+qtd+' em estoque</span>';
-    }
-    estoqueEl.style.display = 'block';
-  }
+  // Renderiza estoque com botões ✕
+  _renderDetalheEstoque(p);
 
   const infos = [];
   if(p.cores)    infos.push({icon:'🎨', label:'Cores disponíveis', valor:p.cores});
@@ -3187,6 +3210,52 @@ function abrirDetalhe(prodId){
   }
 
   document.getElementById('prodDetalheModal').style.display='flex';
+}
+
+function _renderDetalheEstoque(p){
+  const estoqueEl = document.getElementById('prodDetalheEstoque');
+  if(!estoqueEl) return;
+  const qtd = p.qtdEstoque||0;
+  const podeEditar = modoAtual==='dono' || modoAtual==='vendedora';
+  if(qtd === 0){
+    estoqueEl.innerHTML = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Sem estoque</span>';
+  } else if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).filter(k=>p.qtdPorIdade[k]>0).length > 0){
+    const tags = Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0)
+      .map(([k,v])=>`
+        <span style="background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};padding:3px 10px;border-radius:16px;font-size:12px;font-weight:800;margin:2px;display:inline-flex;align-items:center;gap:5px">
+          ${k}: ${v} peça${v>1?'s':''}
+          ${podeEditar?`<button onclick="baixarUmEstoque('${p.id}','${k}')" style="background:rgba(0,0,0,.15);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:900;padding:0;flex-shrink:0;line-height:1">✕</button>`:''}
+        </span>`).join('');
+    estoqueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px">'+tags+'</div>';
+  } else if(qtd <= 3){
+    estoqueEl.innerHTML = '<span style="background:#fff7e0;color:#b08000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Apenas '+qtd+' peça'+(qtd>1?'s':'')+' em estoque</span>';
+  } else {
+    estoqueEl.innerHTML = '<span style="background:#e8f9e0;color:#5BBF2A;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">✅ '+qtd+' em estoque</span>';
+  }
+  estoqueEl.style.display = 'block';
+}
+
+async function baixarUmEstoque(prodId, chave){
+  const idx = precDB.findIndex(x=>String(x.id)===String(prodId));
+  if(idx<0) return;
+  const p = {...precDB[idx]};
+  if(!p.qtdPorIdade) p.qtdPorIdade = {};
+  const atual = parseInt(p.qtdPorIdade[chave])||0;
+  if(atual <= 0) return;
+  p.qtdPorIdade[chave] = atual - 1;
+  // Recalcula total
+  p.qtdEstoque = Object.values(p.qtdPorIdade).reduce((s,v)=>s+(parseInt(v)||0),0);
+  // Se esta chave zerou, remove do array de idades mas mantém no qtdPorIdade com 0
+  precDB[idx] = p;
+  localStorage.setItem('bn_prec', JSON.stringify(precDB));
+  if(typeof fbSalvarPrec === 'function') await fbSalvarPrec(p);
+  // Atualiza badge no modal sem fechar
+  _renderDetalheEstoque(p);
+  // Atualiza lista de preços e precificação
+  if(typeof renderCatalogo === 'function') renderCatalogo();
+  if(typeof renderPrecSalvos === 'function') renderPrecSalvos();
+  showToast('✅ 1 unidade baixada — '+chave+' agora: '+(atual-1), '#16a34a');
+  if(atual-1 === 0) showToast('⚠️ '+p.nome+' ('+chave+'): estoque zerado!','#F26522');
 }
 
 function renderCatalogo(){
@@ -3302,11 +3371,27 @@ function editarPrec(prodId){
   const usoEl = document.getElementById('p-uso');
   const faixaEl = document.getElementById('p-faixa');
   if(usoEl) usoEl.value = p.uso||'';
-  // Preencher checkboxes de idade e tamanho
-  const idadesP = p.idades || (p.faixa ? p.faixa.split(',') : []);
+  // Preencher checkboxes de idade/tamanho E quantidades
+  const idadesP = p.idades || (p.faixa ? p.faixa.split(',').map(s=>s.trim()) : []);
+  const qtdMap = p.qtdPorIdade || {};
   ['1','2','3','4','6','8','10','12','14','16','P','M','G','GG'].forEach(function(v){
-    var cb = document.getElementById('p-idade-'+v);
-    if(cb) cb.checked = idadesP.includes(v);
+    const cb   = document.getElementById('p-idade-'+v);
+    const qtdI = document.getElementById('p-qtd-idade-'+v);
+    const wrap = document.getElementById('p-idade-wrap-'+v);
+    const temQtd = qtdMap[v] > 0;
+    const temIdade = idadesP.includes(String(v)) || temQtd;
+    if(cb) cb.checked = temIdade;
+    if(qtdI){
+      qtdI.value = temQtd ? qtdMap[v] : (temIdade ? 1 : '');
+      qtdI.style.display = temIdade ? 'inline-block' : 'none';
+    }
+    if(wrap){
+      wrap.style.background = temIdade ? '#3B5BDB' : '#f0f4ff';
+      wrap.style.border = temIdade ? '1.5px solid #3B5BDB' : '1.5px solid #D8DEFF';
+      const span = wrap.querySelector('span');
+      if(span) span.style.color = temIdade ? '#fff' : 'var(--azul)';
+      if(cb) cb.style.accentColor = temIdade ? '#fff' : 'var(--azul)';
+    }
   });
 
   if(p.modoManual){
@@ -3840,34 +3925,62 @@ function renderRelatorioVendedora(){
   `;
 }
 
-// ══════════════════════════════════════════
-// EDITAR / EXCLUIR VENDA
-// ══════════════════════════════════════════
-let _editVendaId = null;
+let _editVendedora1 = false;
+
+function toggleEditVendedora(){
+  _editVendedora1 = !_editVendedora1;
+  document.getElementById('e-vend-toggle-bg').style.background = _editVendedora1 ? 'var(--azul)' : '#ccc';
+  document.getElementById('e-vend-toggle-knob').style.left = _editVendedora1 ? '23px' : '3px';
+  // Calcula comissão automática se ativado
+  if(_editVendedora1){
+    const val = parseFloat(document.getElementById('e-val').value)||0;
+    const frete = parseFloat(document.getElementById('e-frete').value)||0;
+    const auto = Math.round((val-frete)*(COMISSAO_PCT/100)*100)/100;
+    document.getElementById('e-vend').value = auto;
+    document.getElementById('e-vend-label').textContent = 'Comissão: '+COMISSAO_PCT+'% = R$ '+auto.toFixed(2).replace('.',',');
+  } else {
+    document.getElementById('e-vend-label').textContent = 'Comissão: calculada automaticamente';
+  }
+  calcEditCusto();
+}
 
 function abrirEditModal(vendaId){
   const v = vendas.find(x=>String(x.id)===String(vendaId));
   if(!v){ showToast("⚠️ Venda não encontrada","#F26522"); return; }
   _editVendaId = vendaId;
-  document.getElementById('e-cli').value   = v.cli||'';
-  document.getElementById('e-prod').value  = v.prod||'';
-  document.getElementById('e-val').value   = v.val||0;
-  document.getElementById('e-status').value= v.status||'Pago';
-  document.getElementById('e-custo').value = v.custo||0;
-  document.getElementById('e-emb').value   = v.emb||0;
-  document.getElementById('e-taxa').value  = v.taxaPct||0;
-  document.getElementById('e-uber').value  = v.uber||0;
-  document.getElementById('e-frete').value = v.frete||0;
-  document.getElementById('e-vend').value  = v.vend||0;
-  document.getElementById('e-outros').value= v.outros||0;
-  // anúncio
+  document.getElementById('e-cli').value    = v.cli||'';
+  document.getElementById('e-prod').value   = v.prod||'';
+  document.getElementById('e-val').value    = v.val||'';
+  document.getElementById('e-status').value = v.status||'Pago';
+  // Data
+  const eData = document.getElementById('e-data');
+  if(eData) eData.value = v.data ? v.data.split('T')[0] : new Date().toISOString().split('T')[0];
+  // Cidade e pagamento
+  const eCidade = document.getElementById('e-cidade'); if(eCidade) eCidade.value = v.cidade||'';
+  const ePag = document.getElementById('e-pag'); if(ePag) ePag.value = v.pag||'';
+  // Custos
+  document.getElementById('e-custo').value  = v.custo  != null ? v.custo  : '';
+  document.getElementById('e-emb').value    = v.emb    != null ? v.emb    : '';
+  document.getElementById('e-taxa').value   = v.taxaPct!= null ? v.taxaPct: '';
+  document.getElementById('e-uber').value   = v.uber   != null ? v.uber   : '';
+  document.getElementById('e-frete').value  = v.frete  != null ? v.frete  : '';
+  document.getElementById('e-vend').value   = v.vend   != null ? v.vend   : '';
+  document.getElementById('e-outros').value = v.outros != null ? v.outros : '';
+  // Toggle vendedora
+  _editVendedora1 = !!v.vendedora1;
+  document.getElementById('e-vend-toggle-bg').style.background = _editVendedora1 ? 'var(--azul)' : '#ccc';
+  document.getElementById('e-vend-toggle-knob').style.left = _editVendedora1 ? '23px' : '3px';
+  if(_editVendedora1 && v.vend){
+    document.getElementById('e-vend-label').textContent = 'Comissão: R$ '+Number(v.vend).toFixed(2).replace('.',',');
+  }
+  // Anúncio
   const eAnuncio = document.getElementById('e-anuncio');
   const eAnuncioExtra = document.getElementById('e-anuncio-extra');
   eAnuncio.checked = !!v.anuncio;
   eAnuncioExtra.style.display = v.anuncio ? 'block' : 'none';
   document.getElementById('e-anuncio-nome').value = v.anuncioNome||'';
   document.getElementById('e-anuncio-plat').value = v.anuncioPlat||'';
-  // envio
+  // Envio
   const eEnvio = document.getElementById('e-envio');
   const eEnvioSpan = document.getElementById('e-envio-span');
   if(eEnvio){ eEnvio.checked = !!v.envio; if(eEnvioSpan) eEnvioSpan.style.background = v.envio ? 'var(--azul)' : '#ccc'; }
@@ -3913,7 +4026,11 @@ async function salvarEdicao(){
     cli:document.getElementById('e-cli').value.trim(),
     prod:document.getElementById('e-prod').value.trim(),
     val, status:document.getElementById('e-status').value,
+    data: document.getElementById('e-data')?.value ? new Date(document.getElementById('e-data').value+'T12:00:00').toISOString() : v.data,
+    cidade: document.getElementById('e-cidade')?.value.trim()||v.cidade||'',
+    pag: document.getElementById('e-pag')?.value||v.pag||'',
     custo,emb,taxaPct,taxaVal,uber,frete,vend,outros,totalC,lucro:val-totalC,
+    vendedora1: _editVendedora1,
     anuncio: document.getElementById('e-anuncio').checked,
     anuncioNome: document.getElementById('e-anuncio-nome').value.trim(),
     anuncioPlat: document.getElementById('e-anuncio-plat').value,
