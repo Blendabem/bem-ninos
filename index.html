@@ -502,22 +502,15 @@ textarea{resize:none;height:60px}
           <label>💲 Valor de Venda (R$)</label>
           <input id="f-val-v" type="number" placeholder="0,00" inputmode="decimal" readonly style="background:#f0f2ff;font-weight:800;color:var(--azul)">
           <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600">💡 Calculado automaticamente pelos itens acima</div>
-          <div style="margin-top:10px">
-            <label>📬 Frete / Entrega (R$)</label>
-            <input id="f-frete-vend" type="number" placeholder="0,00" inputmode="decimal"
-              style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--borda);font-size:14px;font-weight:700;background:#fff;outline:none"
-              oninput="atualizarFreteVendedora(this.value)">
-            <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600">💡 Cobrado do cliente — não entra na comissão</div>
-          </div>
         </div>
 
-        <!-- Frete visível para gestoras (fora do custosBox) -->
-        <div class="dono-only" id="freteDonoBox" style="background:#f0f7ff;border-radius:10px;padding:12px;border:1.5px solid #D8DEFF">
+        <!-- Frete — visível para todos os perfis -->
+        <div style="background:#f0f7ff;border-radius:10px;padding:12px;border:1.5px solid #D8DEFF">
           <label style="font-size:12px;font-weight:800;color:var(--azul);text-transform:uppercase;letter-spacing:.4px">📬 Frete / Entrega (R$)</label>
-          <input type="number" placeholder="0,00" inputmode="decimal"
+          <input id="f-frete-vend" type="number" placeholder="0,00" inputmode="decimal"
             style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--borda);font-size:14px;font-weight:700;background:#fff;outline:none;margin-top:6px"
-            oninput="document.getElementById('f-frete').value=this.value;calcCusto()">
-          <div style="font-size:11px;color:var(--sub);margin-top:4px;font-weight:600">💡 Cobrado do cliente — não entra no custo</div>
+            oninput="atualizarFreteVendedora(this.value)">
+          <div style="font-size:11px;color:var(--sub);margin-top:4px;font-weight:600">💡 Cobrado do cliente — não entra na comissão</div>
         </div>
 
         <!-- MARCAÇÃO VENDEDORA -->
@@ -2234,7 +2227,6 @@ async function registrarVenda(){
 
   // limpar form
   ['f-cli','f-tel','f-cidade','f-obs','f-cpf','f-cep','f-endereco','f-frete-vend'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
-  const freteDono = document.querySelector('#freteDonoBox input'); if(freteDono) freteDono.value='';
   if(isDono){
     ['f-val','f-custo','f-emb','f-taxa','f-uber','f-frete','f-vend','f-outros','f-anuncio-nome'].forEach(id=>document.getElementById(id).value='');
     const fv=document.getElementById('f-vend'); if(fv) delete fv.dataset.manual;
@@ -3217,15 +3209,30 @@ function _renderDetalheEstoque(p){
   if(!estoqueEl) return;
   const qtd = p.qtdEstoque||0;
   const podeEditar = modoAtual==='dono' || modoAtual==='vendedora';
+
+  // Monta qtdPorIdade a partir de idades se não existir
+  let qtdMap = p.qtdPorIdade || {};
+  const temQtdMap = Object.keys(qtdMap).filter(k=>qtdMap[k]>0).length > 0;
+
+  if(!temQtdMap && p.idades && p.idades.length > 0){
+    // Distribui qtd total entre as idades igualmente
+    const qtdPorItem = Math.max(1, Math.floor(qtd / p.idades.length));
+    qtdMap = {};
+    p.idades.forEach(i=>{ qtdMap[String(i)] = qtdPorItem; });
+  }
+
+  const chaves = Object.keys(qtdMap).filter(k=>qtdMap[k]>0);
+
   if(qtd === 0){
     estoqueEl.innerHTML = '<span style="background:#fee2e2;color:#dc2626;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Sem estoque</span>';
-  } else if(p.qtdPorIdade && Object.keys(p.qtdPorIdade).filter(k=>p.qtdPorIdade[k]>0).length > 0){
-    const tags = Object.entries(p.qtdPorIdade).filter(([k,v])=>v>0)
-      .map(([k,v])=>`
-        <span style="background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};padding:3px 10px;border-radius:16px;font-size:12px;font-weight:800;margin:2px;display:inline-flex;align-items:center;gap:5px">
-          ${k}: ${v} peça${v>1?'s':''}
-          ${podeEditar?`<button onclick="baixarUmEstoque('${p.id}','${k}')" style="background:rgba(0,0,0,.15);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:900;padding:0;flex-shrink:0;line-height:1">✕</button>`:''}
-        </span>`).join('');
+  } else if(chaves.length > 0){
+    const tags = chaves.map(k=>{
+      const v = qtdMap[k];
+      return `<span style="background:${v<=2?'#fff7e0':'#e8f9e0'};color:${v<=2?'#b08000':'#2a7a00'};padding:3px 10px;border-radius:16px;font-size:12px;font-weight:800;margin:2px;display:inline-flex;align-items:center;gap:5px">
+        ${k}: ${v} peça${v>1?'s':''}
+        ${podeEditar?`<button onclick="baixarUmEstoque('${p.id}','${k}')" style="background:rgba(0,0,0,.15);border:none;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;color:inherit;display:inline-flex;align-items:center;justify-content:center;font-weight:900;padding:0;flex-shrink:0;line-height:1">✕</button>`:''}
+      </span>`;
+    }).join('');
     estoqueEl.innerHTML = '<div style="display:flex;flex-wrap:wrap;gap:4px">'+tags+'</div>';
   } else if(qtd <= 3){
     estoqueEl.innerHTML = '<span style="background:#fff7e0;color:#b08000;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:800">⚠️ Apenas '+qtd+' peça'+(qtd>1?'s':'')+' em estoque</span>';
@@ -3238,20 +3245,21 @@ function _renderDetalheEstoque(p){
 async function baixarUmEstoque(prodId, chave){
   const idx = precDB.findIndex(x=>String(x.id)===String(prodId));
   if(idx<0) return;
-  const p = {...precDB[idx]};
-  if(!p.qtdPorIdade) p.qtdPorIdade = {};
+  const p = {...precDB[idx], qtdPorIdade: {...(precDB[idx].qtdPorIdade||{})}};
+  // Se não há qtdPorIdade mas há idades, inicializa distribuindo qtd total
+  if(!Object.keys(p.qtdPorIdade).some(k=>p.qtdPorIdade[k]>0) && p.idades && p.idades.length > 0){
+    const qtdTotal = p.qtdEstoque || 0;
+    const qtdPorItem = Math.max(1, Math.floor(qtdTotal / p.idades.length));
+    p.idades.forEach(i=>{ p.qtdPorIdade[String(i)] = qtdPorItem; });
+  }
   const atual = parseInt(p.qtdPorIdade[chave])||0;
   if(atual <= 0) return;
   p.qtdPorIdade[chave] = atual - 1;
-  // Recalcula total
   p.qtdEstoque = Object.values(p.qtdPorIdade).reduce((s,v)=>s+(parseInt(v)||0),0);
-  // Se esta chave zerou, remove do array de idades mas mantém no qtdPorIdade com 0
   precDB[idx] = p;
   localStorage.setItem('bn_prec', JSON.stringify(precDB));
   if(typeof fbSalvarPrec === 'function') await fbSalvarPrec(p);
-  // Atualiza badge no modal sem fechar
   _renderDetalheEstoque(p);
-  // Atualiza lista de preços e precificação
   if(typeof renderCatalogo === 'function') renderCatalogo();
   if(typeof renderPrecSalvos === 'function') renderPrecSalvos();
   showToast('✅ 1 unidade baixada — '+chave+' agora: '+(atual-1), '#16a34a');
@@ -3653,10 +3661,11 @@ function renderItens(){
 }
 
 function atualizarFreteVendedora(valor){
-  // Atualiza o campo f-frete (usado no objeto venda) sem afetar comissão
   const frete = parseFloat(valor)||0;
   const fEl = document.getElementById('f-frete');
   if(fEl){ fEl.value = frete > 0 ? frete : ''; }
+  // Para gestoras, recalcula o resumo de custos
+  if(modoAtual==='dono' && typeof calcCusto === 'function') calcCusto();
 }
 
 function resetItens(){
