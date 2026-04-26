@@ -390,6 +390,8 @@ textarea{resize:none;height:60px}
 
   <!-- RESUMO -->
   <section class="section active" id="sec-resumo">
+    <!-- 5. Alertas de pendentes -->
+    <div id="alertasPendentes"></div>
     <div class="kpi-grid">
       <div class="kpi-card c1"><div class="kpi-emoji">💰</div><div class="kpi-label">Faturamento</div><div class="kpi-valor" id="k-fat">R$ 0</div><div class="kpi-sub" id="k-fat-sub">0 pedidos</div></div>
       <div class="kpi-card c2"><div class="kpi-emoji">📈</div><div class="kpi-label">Lucro Bruto</div><div class="kpi-valor pos" id="k-lucro">R$ 0</div><div class="kpi-sub" id="k-margem">Margem 0%</div></div>
@@ -560,6 +562,13 @@ textarea{resize:none;height:60px}
               <span id="toggleEnvioKnob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.3s;display:block"></span>
             </button>
           </div>
+          <div id="rastreioBox" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid #D8DEFF">
+            <label style="font-size:11px;font-weight:800;color:var(--azul);text-transform:uppercase">📬 Código de Rastreio</label>
+            <input id="f-rastreio" type="text" placeholder="Ex: BR123456789BR"
+              style="width:100%;padding:9px 12px;border-radius:10px;border:2px solid var(--borda);font-size:13px;font-weight:700;background:#fff;outline:none;margin-top:4px;text-transform:uppercase"
+              oninput="this.value=this.value.toUpperCase()">
+            <div style="font-size:11px;color:var(--sub);margin-top:3px">Opcional — aparece nos detalhes do pedido</div>
+          </div>
         </div>
 
         <!-- MARCAÇÃO DE ANÚNCIO -->
@@ -626,6 +635,14 @@ textarea{resize:none;height:60px}
           style="background:#f0f7ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">
           📦 Ver envios
         </button>
+      </div>
+      <!-- Filtro de status -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;padding-bottom:2px">
+        <button class="stab active" id="fs-todos" onclick="setFiltroStatus('todos',this)" style="font-size:11px;padding:6px 10px;white-space:nowrap">Todos</button>
+        <button class="stab" id="fs-pago" onclick="setFiltroStatus('Pago',this)" style="font-size:11px;padding:6px 10px;white-space:nowrap">✅ Pagos</button>
+        <button class="stab" id="fs-pendente" onclick="setFiltroStatus('Pendente',this)" style="font-size:11px;padding:6px 10px;white-space:nowrap">⏳ Pendentes</button>
+        <button class="stab" id="fs-enviado" onclick="setFiltroStatus('Enviado',this)" style="font-size:11px;padding:6px 10px;white-space:nowrap">🚚 Enviados</button>
+        <button class="stab" id="fs-cancelado" onclick="setFiltroStatus('Cancelado',this)" style="font-size:11px;padding:6px 10px;white-space:nowrap">❌ Cancelados</button>
       </div>
       <div class="pedido-list" id="listFull"></div>
     </div>
@@ -911,7 +928,10 @@ textarea{resize:none;height:60px}
       <div class="kpi-card c2"><div class="kpi-emoji">💰</div><div class="kpi-label">Minha Comissão</div><div class="kpi-valor pos" id="rv-comissao">R$ 0</div><div class="kpi-sub" id="rv-pct">5%</div></div>
     </div>
     <div class="card">
-      <div class="card-title"><span class="dot" style="background:var(--verde)"></span>Detalhamento por Venda</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="card-title" style="margin-bottom:0"><span class="dot" style="background:var(--verde)"></span>Detalhamento por Venda</div>
+        <button onclick="exportarRelatorioVendedora()" style="background:#f0f7ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap">📤 Compartilhar</button>
+      </div>
       <div id="relatorioVendList"></div>
     </div>
   </section>
@@ -1052,12 +1072,35 @@ textarea{resize:none;height:60px}
   <section class="section dono-section" id="sec-clientes">
     <!-- alertas 40 dias -->
     <div id="alertasClientes"></div>
+    <!-- Card cadastro clientes antigos — só em Janeiro -->
+    <div id="cardClientesAntigos" style="display:none;background:linear-gradient(135deg,#fffbeb,#fef3c7);border:2px solid #F59E0B;border-radius:16px;padding:16px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:900;color:#92400e;margin-bottom:4px">📋 Importar Clientes Anteriores</div>
+      <div style="font-size:12px;color:#b45309;margin-bottom:12px;font-weight:600">Cadastre clientes que já compraram antes do app. Disponível apenas em Janeiro.</div>
+      <div class="form-row">
+        <div class="fg"><label style="font-size:11px;color:#92400e">👤 Nome</label>
+          <input id="ca-nome" type="text" placeholder="Nome do cliente"
+            style="padding:9px 12px;border-radius:10px;border:2px solid #FDE68A;font-size:13px;font-weight:700;width:100%;outline:none;background:#fff">
+        </div>
+        <div class="fg"><label style="font-size:11px;color:#92400e">📱 WhatsApp</label>
+          <input id="ca-tel" type="tel" placeholder="Ex: 11999999999"
+            style="padding:9px 12px;border-radius:10px;border:2px solid #FDE68A;font-size:13px;font-weight:700;width:100%;outline:none;background:#fff">
+        </div>
+      </div>
+      <div style="font-size:11px;color:#b45309;margin-bottom:8px;font-weight:600">💡 O cliente aparecerá na lista sem histórico de compras. Vendas futuras serão vinculadas automaticamente pelo WhatsApp.</div>
+      <button onclick="salvarClienteAntigo()" style="width:100%;padding:12px;background:#F59E0B;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:900;cursor:pointer">➕ Cadastrar Cliente</button>
+      <div id="caFeedback" style="margin-top:8px;font-size:12px;font-weight:700;text-align:center;min-height:18px"></div>
+    </div>
     <!-- KPIs clientes -->
     <div class="kpi-grid" style="margin-bottom:12px">
       <div class="kpi-card c1"><div class="kpi-emoji">👩‍👧</div><div class="kpi-label">Total Clientes</div><div class="kpi-valor" id="ck-total">0</div><div class="kpi-sub">Cadastrados</div></div>
       <div class="kpi-card c2"><div class="kpi-emoji">🔄</div><div class="kpi-label">Recorrentes</div><div class="kpi-valor" id="ck-recorrentes">0</div><div class="kpi-sub">2+ compras</div></div>
     </div>
     <!-- filtro ordenação -->
+    <div style="position:relative;margin-bottom:10px">
+      <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔍</span>
+      <input id="clientesBusca" type="text" placeholder="Buscar cliente por nome ou WhatsApp..." oninput="renderClientesFull()"
+        style="width:100%;padding:9px 12px 9px 32px;border-radius:10px;border:2px solid var(--borda);font-size:13px;font-weight:600;outline:none;background:#f7f8fd">
+    </div>
     <div style="display:flex;gap:8px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px">
       <button class="stab active" id="cf-freq" onclick="setFiltroCliente('frequencia',this)" style="font-size:12px;padding:8px;white-space:nowrap">🔄 Frequência</button>
       <button class="stab" id="cf-gasto" onclick="setFiltroCliente('gasto',this)" style="font-size:12px;padding:8px;white-space:nowrap">💰 Maior Gasto</button>
@@ -1311,13 +1354,16 @@ textarea{resize:none;height:60px}
 
 <!-- MODAL CONFIRMAR EXCLUSÃO -->
 <div id="confirmExcluirModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:320px;text-align:center">
-    <div style="font-size:40px;margin-bottom:12px">🗑</div>
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:17px;font-weight:800;color:var(--texto);margin-bottom:8px">Excluir venda?</div>
-    <div style="font-size:13px;color:var(--sub);margin-bottom:20px">Esta ação não pode ser desfeita.</div>
+  <div style="background:#fff;border-radius:20px;padding:24px;width:100%;max-width:320px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:40px;margin-bottom:8px">🗑️</div>
+      <div style="font-size:17px;font-weight:900;color:var(--texto)">Excluir esta venda?</div>
+      <div id="confirmExcluirInfo" style="font-size:13px;color:var(--sub);margin-top:6px;padding:10px;background:#f7f8fd;border-radius:10px;text-align:left;line-height:1.5"></div>
+      <div style="font-size:12px;color:#dc2626;font-weight:700;margin-top:8px">⚠️ Esta ação não pode ser desfeita</div>
+    </div>
     <div style="display:flex;gap:10px">
-      <button onclick="cancelarExclusao()" style="flex:1;padding:12px;border-radius:12px;border:none;background:#f0f2fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:800;cursor:pointer;color:var(--sub)">Cancelar</button>
-      <button onclick="excluirVenda()" style="flex:1;padding:12px;border-radius:12px;border:none;background:#dc2626;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:800;cursor:pointer;color:#fff">🗑 Excluir</button>
+      <button onclick="cancelarExclusao()" style="flex:1;padding:13px;border-radius:12px;border:none;background:#f0f2fa;font-size:14px;font-weight:800;cursor:pointer;color:var(--sub)">Cancelar</button>
+      <button onclick="excluirVenda()" style="flex:1;padding:13px;border-radius:12px;border:none;background:#dc2626;font-size:14px;font-weight:800;cursor:pointer;color:#fff">🗑 Excluir</button>
     </div>
   </div>
 </div>
@@ -1632,6 +1678,8 @@ const pct   = (v,m) => m ? Math.min(100,Math.round((v/m)*100)) : 0;
 const ini   = n => (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const dpKey = () => `${pAno}-${String(pMes+1).padStart(2,'0')}`;
 function vPeriodo(){ return vendas.filter(v=>{ const d=new Date(v.data); return d.getMonth()===pMes&&d.getFullYear()===pAno; }); }
+// Versão sem clientes antigos — para cálculos financeiros
+function vPeriodoFin(){ return vPeriodo().filter(v=>!v.clienteAntigo); }
 
 // Cores avatar
 const CORES_AVATAR=['#2B2FA8','#5BBF2A','#F26522','#3BB8E8','#F5C400','#dc2626','#7C3AED','#059669'];
@@ -2083,8 +2131,12 @@ function renderClientesFull(){
   else if(filtroCliente==='recente') lista.sort((a,b)=>b.ultimaCompra.localeCompare(a.ultimaCompra));
   else if(filtroCliente==='dormentes') lista=lista.filter(c=>c.diasSemCompra>=40).sort((a,b)=>b.diasSemCompra-a.diasSemCompra);
 
+  // BUSCA POR NOME OU WHATSAPP
+  const busca = (document.getElementById('clientesBusca')?.value||'').toLowerCase().trim();
+  if(busca) lista = lista.filter(c=> c.nome.toLowerCase().includes(busca) || (c.tel||'').includes(busca));
+
   if(!lista.length){
-    el.innerHTML=`<div class="vazio"><span class="vazio-e">👩‍👧</span>${filtroCliente==='dormentes'?'Nenhum cliente dormente. Ótimo! 🎉':'Nenhuma venda registrada ainda.'}</div>`;
+    el.innerHTML=`<div class="vazio"><span class="vazio-e">👩‍👧</span>${busca?'Nenhum cliente encontrado para "'+busca+'"':filtroCliente==='dormentes'?'Nenhum cliente dormente. Ótimo! 🎉':'Nenhuma venda registrada ainda.'}</div>`;
     return;
   }
 
@@ -2210,7 +2262,8 @@ async function registrarVenda(){
     anuncioCusto: vendaVeioDeAnuncio ? (parseFloat(document.getElementById('f-anuncio-custo').value)||0) : 0,
     anuncioPlat: vendaVeioDeAnuncio ? document.getElementById('f-anuncio-plat').value : '',
     vendedora1: vendaVendedora1,
-    envio: _envioAtivo
+    envio: _envioAtivo,
+    rastreio: _envioAtivo ? (document.getElementById('f-rastreio')?.value.trim()||'') : ''
   };
 
   if(isDono){
@@ -2283,21 +2336,35 @@ async function registrarVenda(){
 // ══════════════════════════════════════════
 let _envioAtivo = false;
 let filtroSoEnvios = false;
+let filtroStatus = 'todos';
+
+function setFiltroStatus(status, el){
+  filtroStatus = status;
+  document.querySelectorAll('[id^="fs-"]').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+  renderPedidos('listFull', 999);
+}
 
 function toggleEnvio(){
   _envioAtivo = !_envioAtivo;
   const btn = document.getElementById('btnEnvioToggle');
   const knob = document.getElementById('toggleEnvioKnob');
+  const rastreio = document.getElementById('rastreioBox');
   if(btn) btn.style.background = _envioAtivo ? 'var(--azul)' : '#ccc';
   if(knob) knob.style.left = _envioAtivo ? '27px' : '3px';
+  if(rastreio) rastreio.style.display = _envioAtivo ? 'block' : 'none';
 }
 
 function resetEnvio(){
   _envioAtivo = false;
   const btn = document.getElementById('btnEnvioToggle');
   const knob = document.getElementById('toggleEnvioKnob');
+  const rastreio = document.getElementById('rastreioBox');
+  const fRastreio = document.getElementById('f-rastreio');
   if(btn) btn.style.background = '#ccc';
   if(knob) knob.style.left = '3px';
+  if(rastreio) rastreio.style.display = 'none';
+  if(fRastreio) fRastreio.value = '';
 }
 
 function toggleFiltroEnvio(){
@@ -2461,6 +2528,63 @@ function excluirOrcamento(id){
   localStorage.setItem('bn_orcamentos', JSON.stringify(orcamentosDB));
   showToast('🗑 Orçamento removido','#64748b');
   renderOrcamentos();
+}
+
+// ══════════════════════════════════════════
+// CLIENTES ANTIGOS (só em Janeiro)
+// ══════════════════════════════════════════
+function verificarCardClientesAntigos(){
+  const card = document.getElementById('cardClientesAntigos');
+  if(!card) return;
+  // Visível somente em Janeiro (pMes === 0) para Gestoras
+  card.style.display = (pMes === 0 && modoAtual === 'dono') ? 'block' : 'none';
+}
+
+async function salvarClienteAntigo(){
+  const nome = document.getElementById('ca-nome').value.trim();
+  const tel  = document.getElementById('ca-tel').value.replace(/\D/g,'').trim();
+  const fb   = document.getElementById('caFeedback');
+
+  if(!nome){ fb.style.color='#dc2626'; fb.textContent='⚠️ Informe o nome do cliente'; return; }
+  if(!tel || tel.length < 8){ fb.style.color='#dc2626'; fb.textContent='⚠️ Informe um WhatsApp válido'; return; }
+
+  // Verifica duplicata pelo tel
+  const existente = vendas.find(v=> (v.tel||'').replace(/\D/g,'') === tel);
+  if(existente){ fb.style.color='#b45309'; fb.textContent='⚠️ Este WhatsApp já existe: '+existente.cli; return; }
+
+  // Cria uma venda fantasma com valor 0 para registrar o cliente
+  const venda = {
+    cli: nome,
+    tel: tel,
+    prod: '—',
+    val: 0,
+    custo: 0,
+    totalC: 0,
+    lucro: 0,
+    status: 'Pago',
+    pag: '',
+    cidade: '',
+    obs: 'Cliente importado manualmente',
+    data: new Date(pAno, 0, 1).toISOString(), // 1º de Janeiro do ano atual
+    registradoPor: 'dono',
+    clienteAntigo: true
+  };
+
+  fb.style.color = '#b45309';
+  fb.textContent = 'Salvando...';
+
+  const ok = await fbSalvarVenda(venda);
+  if(ok !== false){
+    document.getElementById('ca-nome').value = '';
+    document.getElementById('ca-tel').value  = '';
+    fb.style.color = '#16a34a';
+    fb.textContent = '✅ Cliente "'+nome+'" cadastrado com sucesso!';
+    showToast('✅ Cliente cadastrado!','#16a34a');
+    setTimeout(()=>{ fb.textContent=''; }, 3000);
+  } else {
+    fb.style.color = '#dc2626';
+    fb.textContent = '❌ Erro ao salvar. Tente novamente.';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -4157,6 +4281,9 @@ async function excluirVenda(){
 }
 function pedirConfirmacaoExcluir(){
   if(!_editVendaId) return;
+  const v = vendas.find(x=>String(x.id)===String(_editVendaId));
+  const info = document.getElementById('confirmExcluirInfo');
+  if(info && v) info.innerHTML = `<strong>👤 ${v.cli||'—'}</strong><br>🛍️ ${v.prod||'—'}<br>💲 ${brl(v.val||0)} · ${v.status||''}`;
   document.getElementById('confirmExcluirModal').style.display='flex';
 }
 function cancelarExclusao(){
@@ -4164,7 +4291,35 @@ function cancelarExclusao(){
 }
 async function excluirVendaDireto(vendaId){
   _editVendaId = String(vendaId);
+  const v = vendas.find(x=>String(x.id)===String(vendaId));
+  const info = document.getElementById('confirmExcluirInfo');
+  if(info && v) info.innerHTML = `<strong>👤 ${v.cli||'—'}</strong><br>🛍️ ${v.prod||'—'}<br>💲 ${brl(v.val||0)} · ${v.status||''}`;
   document.getElementById('confirmExcluirModal').style.display='flex';
+}
+
+// 8. EXPORTAR RELATÓRIO VENDEDORA
+function exportarRelatorioVendedora(){
+  const minhas = vPeriodo().filter(v=>v.vendedora1||v.registradoPor==='vendedora');
+  if(!minhas.length){ showToast('⚠️ Nenhuma venda para exportar','#F26522'); return; }
+  const totalVal = minhas.reduce((s,v)=>s+Number(v.val||0),0);
+  const comissao = totalVal*(COMISSAO_PCT/100);
+  const mes = MESES[pMes]+' '+pAno;
+
+  let texto = `*Relatório de Vendas — ${mes}*\n`;
+  texto += `*${minhas.length} vendas · Comissão ${COMISSAO_PCT}%*\n\n`;
+  minhas.forEach(v=>{
+    const data = new Date(v.data).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+    const com = Number(v.val)*(COMISSAO_PCT/100);
+    texto += `📅 ${data} · 👤 ${v.cli||'—'}\n🛍️ ${v.prod||'—'}\n💲 ${brl(v.val)} → Comissão: *${brl(com)}*\n\n`;
+  });
+  texto += `━━━━━━━━━━━━━━━\n*Total Vendas: ${brl(totalVal)}*\n*Minha Comissão: ${brl(comissao)}*`;
+
+  if(navigator.share){
+    navigator.share({ title: 'Relatório Bem Niños', text: texto }).catch(()=>{});
+  } else {
+    navigator.clipboard?.writeText(texto).then(()=>showToast('✅ Relatório copiado!','#16a34a'))
+      .catch(()=>showToast('⚠️ Copie manualmente','#F26522'));
+  }
 }
 
 // ══════════════════════════════════════════
@@ -4518,20 +4673,39 @@ function renderAnuncios(){
 }
 
 function renderAll(){
-  const fns = [renderKPIs, renderGrafico, renderPagamentos,
+  const fns = [renderKPIs, renderAlertasPendentes, renderGrafico, renderPagamentos,
     ()=>renderPedidos('listResumo',8), ()=>renderPedidos('listFull',999),
     renderCatalogo, renderRelatorioVendedora, renderGestor, renderOrcamentos];
   fns.forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll:',fn.name||'fn',e.message); } });
   if(modoAtual==='dono'){
     [renderProdutos, renderClientes, renderBalanco, renderEstoque,
-     renderPrecSalvos, renderClientesFull, renderAnuncios, renderNaoCadastrados
+     renderPrecSalvos, renderClientesFull, renderAnuncios, renderNaoCadastrados,
+     verificarCardClientesAntigos
     ].forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll dono:',fn.name||'fn',e.message); } });
   }
 }
 
 // ── KPIs ──
+function renderAlertasPendentes(){
+  const el = document.getElementById('alertasPendentes');
+  if(!el) return;
+  const pendentes = vPeriodo().filter(v=>(v.status||'Pago')==='Pendente');
+  if(!pendentes.length){ el.innerHTML=''; return; }
+  const total = pendentes.reduce((s,v)=>s+Number(v.val||0),0);
+  el.innerHTML = `
+    <div onclick="showTab('pedidos',document.querySelector('[onclick*=pedidos]'));setTimeout(()=>setFiltroStatus('Pendente',document.getElementById('fs-pendente')),100)"
+      style="background:linear-gradient(135deg,#fff7e0,#fef3c7);border:2px solid #F59E0B;border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:12px">
+      <span style="font-size:24px">⏳</span>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:900;color:#92400e">${pendentes.length} venda${pendentes.length>1?'s':''} pendente${pendentes.length>1?'s':''} de pagamento</div>
+        <div style="font-size:12px;color:#b45309;font-weight:700">Total em aberto: ${brl(total)} · Toque para ver</div>
+      </div>
+      <span style="font-size:16px;color:#b45309">›</span>
+    </div>`;
+}
+
 function renderKPIs(){
-  const mes=vPeriodo();
+  const mes=vPeriodoFin();
   const fat=mes.reduce((s,v)=>s+Number(v.val),0);
   const lucro=mes.reduce((s,v)=>s+Number(v.lucro||0),0);
   const custo=mes.reduce((s,v)=>s+Number(v.totalC||0),0);
@@ -4575,7 +4749,8 @@ function renderPedidos(elId, maxN){
   const el=document.getElementById(elId);
   let lista=vPeriodo().slice(0,maxN);
   if(filtroSoEnvios && elId==='listFull') lista = lista.filter(v=>v.envio===true||v.envio==='true');
-  if(!lista.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🛍️</span><strong>'+(filtroSoEnvios?'Nenhum envio neste período':'Nenhum pedido ainda')+'</strong>'+(filtroSoEnvios?'':'<br>Registre sua primeira venda!<button class="vazio-cta" onclick="showTab(\'venda\',document.querySelector(\'[onclick*=venda]\'))">➕ Nova Venda</button>')+'</div>'; return; }
+  if(filtroStatus !== 'todos' && elId==='listFull') lista = lista.filter(v=>(v.status||'Pago')===filtroStatus);
+  if(!lista.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🛍️</span><strong>'+(filtroSoEnvios?'Nenhum envio neste período':filtroStatus!=='todos'?'Nenhum pedido com status "'+filtroStatus+'"':'Nenhum pedido ainda')+'</strong>'+(filtroSoEnvios||filtroStatus!=='todos'?'':'<br>Registre sua primeira venda!<button class="vazio-cta" onclick="showTab(\'venda\',document.querySelector(\'[onclick*=venda]\'))">➕ Nova Venda</button>')+'</div>'; return; }
   const scls={'Pago':'s-ok','Enviado':'s-env','Pendente':'s-pend','Cancelado':'s-canc'};
   const isDono=modoAtual==='dono';
   el.innerHTML=lista.map((v,i)=>{
@@ -4585,10 +4760,11 @@ function renderPedidos(elId, maxN){
     const lucroOk=(v.lucro||0)>=0;
     const regPor=v.registradoPor==='vendedora'?'<span style="font-size:10px;color:var(--sub)"> · 👩</span>':'';
     const envioBadge=(v.envio===true||v.envio==='true')?'<span style="font-size:10px;font-weight:800;background:#dbeafe;color:#1d4ed8;border-radius:6px;padding:1px 6px;margin-left:4px">📦 Envio</span>':'';
+    const rastreioBadge=v.rastreio?`<span style="font-size:10px;font-weight:800;background:#e0f2fe;color:#0369a1;border-radius:6px;padding:1px 6px;margin-left:4px">📬 ${v.rastreio}</span>`:'';
     return `<div class="pedido-item">
       <div class="pedido-header" onclick="${isDono?`toggleDet('det-${elId}-${i}')`:``}">
         <div class="ava" style="background:${cor}">${in2}</div>
-        <div class="p-info"><div class="p-nome">${v.cli}${regPor}${envioBadge}</div><div class="p-desc">${v.prod}${v.tam?' · T.'+v.tam:''} · ${data} · ${v.pag}</div></div>
+        <div class="p-info"><div class="p-nome">${v.cli}${regPor}${envioBadge}${rastreioBadge}</div><div class="p-desc">${v.prod}${v.tam?' · T.'+v.tam:''} · ${data} · ${v.pag}</div></div>
         <div class="p-right">
           ${isDono?`<div style="display:flex;gap:4px;margin-bottom:3px">
             <button onclick="event.stopPropagation();abrirEditModal('${v.id}')" style="background:var(--azul);border:none;color:#fff;border-radius:7px;padding:3px 9px;font-size:11px;font-weight:800;cursor:pointer">✏️ Editar</button>
@@ -4680,7 +4856,7 @@ function getAjusteManual(){
 }
 
 function renderBalanco(){
-  const mes=vPeriodo();
+  const mes=vPeriodoFin();
   const ajuste = getAjusteManual();
   const fat = (mes.reduce((s,v)=>s+Number(v.val),0)) + (ajuste.fat||0);
   const lucro = mes.reduce((s,v)=>s+Number(v.lucro||0),0);
