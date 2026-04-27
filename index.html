@@ -1634,6 +1634,66 @@ function _setupFirestore(db){
     getDocs: function(ref){ return ref.get(); }
   };
   _fbReady = true;
+
+  // Registrar listeners APÓS auth estar pronto
+  var col  = function(col){ return db.collection(col); };
+  var snap = function(ref, cb){ return ref.onSnapshot(cb); };
+
+  snap(col('ads'), function(s){
+    adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    adsDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
+    if(modoAtual==='dono' || modoAtual==='gestor') renderAnuncios();
+  });
+  snap(col('vendas'), function(s){
+    vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    vendas.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
+    if(modoAtual) renderAll();
+  });
+  snap(col('estoque'), function(s){
+    estoqueDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    estoqueDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
+    if(modoAtual) renderEstoque();
+  });
+  snap(col('precificacao'), function(s){
+    var newPrec = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    if(newPrec.length > 0 || precDB.length === 0){
+      precDB = newPrec;
+      localStorage.setItem('bn_prec', JSON.stringify(precDB));
+    }
+    if(modoAtual){ renderPrecSalvos(); renderCatalogo(); }
+  });
+  snap(col('config'), function(s){
+    s.docs.forEach(function(d){
+      var data = d.data();
+      if(d.id==='senha')        { SENHA_DONO   = data.valor||'@!25';    localStorage.setItem('bn_senha',SENHA_DONO); }
+      if(d.id==='senha_gestor') { SENHA_GESTOR = data.valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
+      if(d.id==='senha_vend')   { SENHA_VEND   = data.valor||'vend26';   localStorage.setItem('bn_senha_v',SENHA_VEND); }
+      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(data.valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
+      if(d.id==='despesas'){
+        var obj = Object.assign({}, data);
+        delete obj.id;
+        if(Object.keys(obj).length > 0){
+          despesasDB = obj;
+          localStorage.setItem('bn_d4', JSON.stringify(despesasDB));
+          if(modoAtual) carregarDespesas();
+        }
+      }
+      if(d.id==='metas'){
+        if(data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
+      }
+      if(d.id && d.id.startsWith('meta_gasto_')){
+        var mesKey = d.id.replace('meta_gasto_','');
+        var lancs = data.lancamentos || [];
+        localStorage.setItem('bn_meta_lanc_'+mesKey, JSON.stringify(lancs));
+        if(mesKey === dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
+          renderGastoMeta(lancs, data.valor||0);
+          const dMetaAds = document.getElementById('d-meta-ads');
+          if(dMetaAds && (data.valor||0) > 0){ dMetaAds.value = (data.valor).toFixed(2); renderBalanco(); }
+        }
+      }
+    });
+  });
+
   window.dispatchEvent(new Event('fbReady'));
   var b = document.getElementById('offlineBanner');
   if(b) b.style.display = 'none';
@@ -1704,78 +1764,9 @@ function corN(n){ let h=0; for(let c of(n||''))h=(h*31+c.charCodeAt(0))%CORES_AV
 
 // Inicializar dados quando DOM pronto
 window.addEventListener('DOMContentLoaded', function(){
-  // 1. Inicializar banco de dados (localStorage)
-  try {
-    initFirebase();
-  } catch(e) { console.error('ERRO em initFirebase:', e.message, e.stack); return; }
+  try { initFirebase(); } catch(e) { console.error('ERRO em initFirebase:', e.message); }
 
-  // 2. Registrar listeners de dados (usa window._fb criado pelo initFirebase)
-  var fb = window._fb;
-  var db = fb.db;
-  var col = fb.collection;
-  var snap = fb.onSnapshot;
-
-  snap(col(db,'ads'), function(s){
-    adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    adsDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual==='dono' || modoAtual==='gestor') renderAnuncios();
-  });
-  snap(col(db,'vendas'), function(s){
-    vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    vendas.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual) renderAll();
-  });
-  snap(col(db,'estoque'), function(s){
-    estoqueDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    estoqueDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual) renderEstoque();
-  });
-  snap(col(db,'precificacao'), function(s){
-    var newPrec = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    // Só atualizar se Firebase retornou dados OU se precDB estava vazio
-    if(newPrec.length > 0 || precDB.length === 0){
-      precDB = newPrec;
-      localStorage.setItem('bn_prec', JSON.stringify(precDB));
-    }
-    if(modoAtual){ renderPrecSalvos(); renderCatalogo(); }
-  });
-  snap(col(db,'config'), function(s){
-    s.docs.forEach(function(d){
-      var data = d.data();
-      if(d.id==='senha')        { SENHA_DONO   = data.valor||'@!25';    localStorage.setItem('bn_senha',SENHA_DONO); }
-      if(d.id==='senha_gestor') { SENHA_GESTOR = data.valor||'gestor123'; localStorage.setItem('bn_senha_g',SENHA_GESTOR); }
-      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(data.valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
-      if(d.id==='despesas'){
-        // Firebase salva despesas como objeto com chaves de mês
-        var obj = data.valor !== undefined ? data : data;
-        // Remover campo 'id' se existir
-        delete obj.id;
-        if(Object.keys(obj).length > 0){
-          despesasDB = obj;
-          localStorage.setItem('bn_d4', JSON.stringify(despesasDB));
-          if(modoAtual) carregarDespesas();
-        }
-      }
-      if(d.id==='metas'){
-        if(data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
-      }
-      // Lançamentos Meta Ads — sincroniza para gestor e dono
-      if(d.id && d.id.startsWith('meta_gasto_')){
-        var mesKey = d.id.replace('meta_gasto_','');
-        var lancs = data.lancamentos || [];
-        localStorage.setItem('bn_meta_lanc_'+mesKey, JSON.stringify(lancs));
-        // Se for o mês atual, atualiza a tela
-        if(mesKey === dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
-          renderGastoMeta(lancs, data.valor||0);
-          // Preenche campo Meta Ads no Balanço automaticamente
-          const dMetaAds = document.getElementById('d-meta-ads');
-          if(dMetaAds && (data.valor||0) > 0){ dMetaAds.value = (data.valor).toFixed(2); renderBalanco(); }
-        }
-      }
-    });
-  });
-
-  // 3. Inicializar campos de data e itens
+  // Inicializar campos de data e itens
   try {
     var hoje = new Date().toISOString().split('T')[0];
     var eData = document.getElementById('e-data');
