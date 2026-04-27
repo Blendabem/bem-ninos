@@ -321,6 +321,7 @@ textarea{resize:none;height:60px}
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
@@ -1583,7 +1584,6 @@ function notifyListeners(col){
 
 function initFirebase(){
   try {
-    // Aguardar Firebase SDK carregar
     if(typeof firebase === 'undefined'){
       console.warn('Firebase SDK ainda não carregou, tentando novamente...');
       setTimeout(initFirebase, 200);
@@ -1598,28 +1598,45 @@ function initFirebase(){
       appId: "1:410215231112:web:150f1c1ad91e24a89793d"
     };
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    var db = firebase.firestore();
-    window._fb = {
-      db: db,
-      collection: function(database, col){ return database.collection(col); },
-      doc: function(database, col, id){ return database.collection(col).doc(id); },
-      onSnapshot: function(ref, cb){ return ref.onSnapshot(cb); },
-      setDoc: function(ref, data){ return ref.set(data, {merge:true}); },
-      addDoc: function(ref, data){ return ref.add(data); },
-      deleteDoc: function(ref){ return ref.delete(); },
-      getDoc: function(ref){ return ref.get(); },
-      getDocs: function(ref){ return ref.get(); }
-    };
-    _fbReady = true;
-    window.dispatchEvent(new Event('fbReady'));
-    // Esconder banner offline se existir
-    var b = document.getElementById('offlineBanner');
-    if(b) b.style.display = 'none';
+
+    var auth = firebase.auth();
+    var db   = firebase.firestore();
+
+    // Login anônimo automático — invisível para o usuário
+    // Só serve para satisfazer as regras de segurança do Firestore
+    auth.onAuthStateChanged(function(user){
+      if(!user){
+        auth.signInAnonymously().catch(function(e){
+          console.warn('Auth anônimo falhou, continuando sem auth:', e.message);
+          _setupFirestore(db);
+        });
+      } else {
+        _setupFirestore(db);
+      }
+    });
+
   } catch(e) {
     console.error('Firebase erro:', e.message);
-    // Fallback para localStorage se Firebase falhar
     usarLocalStorage();
   }
+}
+
+function _setupFirestore(db){
+  window._fb = {
+    db: db,
+    collection: function(database, col){ return database.collection(col); },
+    doc: function(database, col, id){ return database.collection(col).doc(id); },
+    onSnapshot: function(ref, cb){ return ref.onSnapshot(cb); },
+    setDoc: function(ref, data){ return ref.set(data, {merge:true}); },
+    addDoc: function(ref, data){ return ref.add(data); },
+    deleteDoc: function(ref){ return ref.delete(); },
+    getDoc: function(ref){ return ref.get(); },
+    getDocs: function(ref){ return ref.get(); }
+  };
+  _fbReady = true;
+  window.dispatchEvent(new Event('fbReady'));
+  var b = document.getElementById('offlineBanner');
+  if(b) b.style.display = 'none';
 }
 
 function usarLocalStorage(){
