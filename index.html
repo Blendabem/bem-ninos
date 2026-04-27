@@ -322,7 +322,7 @@ textarea{resize:none;height:60px}
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- XLSX carregado sob demanda -->
 </head>
 <body>
 
@@ -1229,9 +1229,7 @@ textarea{resize:none;height:60px}
             <input type="number" id="mi-lucro" inputmode="numeric" placeholder="Ex: 2000">
             <div style="font-size:11px;color:var(--sub);margin-top:3px;font-weight:600" id="mi-lucro-atual"></div>
           </div>
-          <div class="fg"><label>🔐 Alterar Senha do Dono</label><input type="password" id="mi-senha" placeholder="Nova senha"></div>
-          <div class="fg"><label>📣 Alterar Senha do Gestor</label><input type="password" id="mi-senha-g" placeholder="Nova senha gestor"></div>
-          <div class="fg"><label>👩 Alterar Senha da Vendedora</label><input type="password" id="mi-senha-v" placeholder="Nova senha vendedora"></div>
+          <div class="fg"><label>🔐 Alterar Senha do App</label><div style="font-size:12px;color:var(--sub);padding:10px 0">As senhas agora são gerenciadas pelo Firebase Authentication. Para alterar, acesse o Firebase Console → Authentication → Users.</div></div>
           <div class="fg"><label>👩 Comissão da Vendedora (%)</label><input type="number" id="mi-comissao" placeholder="5" inputmode="decimal"></div>
           <button class="btn btn-primary" onclick="salvarMetas()">💾 Salvar</button>
         </div>
@@ -1691,65 +1689,73 @@ function _setupFirestore(db){
   };
   _fbReady = true;
 
-  // Registrar listeners APÓS auth estar pronto
-  var col  = function(col){ return db.collection(col); };
+  var col  = function(c){ return db.collection(c); };
   var snap = function(ref, cb){ return ref.onSnapshot(cb); };
 
-  snap(col('ads'), function(s){
-    adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    adsDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual==='dono' || modoAtual==='gestor') renderAnuncios();
-  });
-  snap(col('vendas'), function(s){
-    vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    vendas.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual) renderAll();
-  });
-  snap(col('estoque'), function(s){
-    estoqueDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    estoqueDB.sort(function(a,b){ return b.data > a.data ? 1 : -1; });
-    if(modoAtual) renderEstoque();
-  });
-  snap(col('precificacao'), function(s){
-    var newPrec = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
-    if(newPrec.length > 0 || precDB.length === 0){
-      precDB = newPrec;
-      localStorage.setItem('bn_prec', JSON.stringify(precDB));
-    }
-    if(modoAtual){ renderPrecSalvos(); renderCatalogo(); }
-  });
+  // ── FASE 1: Crítico — config + vendas (carregam imediatamente) ──
+
   snap(col('config'), function(s){
     s.docs.forEach(function(d){
       var data = d.data();
-      if(d.id==='comissao')     { COMISSAO_PCT = parseFloat(data.valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
+      if(d.id==='comissao'){ COMISSAO_PCT = parseFloat(data.valor)||5; localStorage.setItem('bn_comissao',COMISSAO_PCT); }
       if(d.id==='despesas'){
-        var obj = Object.assign({}, data);
-        delete obj.id;
-        if(Object.keys(obj).length > 0){
-          despesasDB = obj;
-          localStorage.setItem('bn_d4', JSON.stringify(despesasDB));
-          if(modoAtual) carregarDespesas();
-        }
+        var obj = Object.assign({}, data); delete obj.id;
+        if(Object.keys(obj).length > 0){ despesasDB = obj; localStorage.setItem('bn_d4', JSON.stringify(despesasDB)); if(modoAtual) carregarDespesas(); }
       }
-      if(d.id==='metas'){
-        if(data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
-      }
+      if(d.id==='metas' && data.fat){ metas = {fat:data.fat, ped:data.ped, lucro:data.lucro}; localStorage.setItem('bn_m4', JSON.stringify(metas)); }
       if(d.id && d.id.startsWith('meta_gasto_')){
         var mesKey = d.id.replace('meta_gasto_','');
-        var lancs = data.lancamentos || [];
+        var lancs = data.lancamentos||[];
         localStorage.setItem('bn_meta_lanc_'+mesKey, JSON.stringify(lancs));
-        if(mesKey === dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
+        if(mesKey===dpKey() && (modoAtual==='dono'||modoAtual==='gestor')){
           renderGastoMeta(lancs, data.valor||0);
-          const dMetaAds = document.getElementById('d-meta-ads');
-          if(dMetaAds && (data.valor||0) > 0){ dMetaAds.value = (data.valor).toFixed(2); renderBalanco(); }
+          var dma = document.getElementById('d-meta-ads');
+          if(dma && (data.valor||0)>0){ dma.value=(data.valor).toFixed(2); if(modoAtual==='dono') try{renderBalanco();}catch(e){} }
         }
       }
     });
   });
 
+  snap(db.collection('vendas').orderBy('data','desc').limit(300), function(s){
+    vendas = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    if(modoAtual) renderAbaAtual();
+    else window.addEventListener('appPronto', function(){ renderAbaAtual(); }, {once:true});
+  });
+
+  // ── FASE 2: Precificação — usa cache, sincroniza em background ──
+  // Disponível imediatamente do localStorage; snapshot é baixo custo pois usa cache do SDK
+  snap(col('precificacao'), function(s){
+    var np = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+    if(np.length > 0){ precDB = np; localStorage.setItem('bn_prec', JSON.stringify(precDB)); }
+    var aba = _abaAtual();
+    if(aba==='catalogo'||aba==='estoque') try{ renderCatalogo(); renderPrecSalvos(); }catch(e){}
+  });
+
+  // ── FASE 3: Sob demanda — estoque e ads carregam ao abrir a aba ──
+  // Registra listeners só quando a aba for acessada pela primeira vez
+  window._colListeners = window._colListeners || {};
+
+  window.abrirListenerEstoque = function(){
+    if(window._colListeners.estoque) return;
+    window._colListeners.estoque = snap(col('estoque'), function(s){
+      estoqueDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      estoqueDB.sort(function(a,b){ return b.data>a.data?1:-1; });
+      if(_abaAtual()==='estoque') try{renderEstoque();}catch(e){}
+    });
+  };
+
+  window.abrirListenerAds = function(){
+    if(window._colListeners.ads) return;
+    window._colListeners.ads = snap(col('ads'), function(s){
+      adsDB = s.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      adsDB.sort(function(a,b){ return b.data>a.data?1:-1; });
+      if(_abaAtual()==='gestor') try{renderAnuncios();}catch(e){}
+    });
+  };
+
   window.dispatchEvent(new Event('fbReady'));
   var b = document.getElementById('offlineBanner');
-  if(b) b.style.display = 'none';
+  if(b) b.style.display='none';
 }
 
 function usarLocalStorage(){
@@ -1833,13 +1839,60 @@ window.addEventListener('DOMContentLoaded', function(){
 
 
 // ══════════════════════════════════════════
-// LOGIN / MODO
+// LAZY LOADING & PERFORMANCE
+// ══════════════════════════════════════════
+
+// Controle de abas já carregadas
+const _tabsCarregadas = new Set();
+let _xlsxCarregado = false;
+
+// Carrega XLSX sob demanda
+function carregarXLSX(callback){
+  if(window.XLSX){ if(callback) callback(); return; }
+  if(_xlsxCarregado){ 
+    // já está carregando, aguarda
+    var t = setInterval(function(){ if(window.XLSX){ clearInterval(t); if(callback) callback(); } }, 100);
+    return;
+  }
+  _xlsxCarregado = true;
+  var s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+  s.onload = function(){ if(callback) callback(); };
+  document.head.appendChild(s);
+}
+
+// Mapa: aba → função de render
+const _tabRender = {
+  'resumo':        ()=>{ renderKPIs(); renderAlertasPendentes(); renderGrafico(); renderPagamentos(); renderPedidos('listResumo',8); },
+  'venda':         ()=>{ renderOrcamentos(); },
+  'pedidos':       ()=>{ renderPedidos('listFull',999); },
+  'catalogo':      ()=>{ renderCatalogo(); },
+  'relatorio-vend':()=>{ renderRelatorioVendedora(); },
+  'gestor':        ()=>{ if(window.abrirListenerAds) abrirListenerAds(); renderGestor(); },
+  'prod':          ()=>{ renderProdutos(); renderClientes(); },
+  'estoque':       ()=>{ if(window.abrirListenerEstoque) abrirListenerEstoque(); renderEstoque(); renderPrecSalvos(); renderNaoCadastrados(); },
+  'clientes':      ()=>{ renderClientesFull(); verificarCardClientesAntigos(); },
+  'balanco':       ()=>{ renderBalanco(); },
+};
+
+// Render apenas da aba visível
+function renderAbaAtual(){
+  var aba = _abaAtual();
+  if(!aba) return;
+  try { (_tabRender[aba] || (()=>{}))(); } catch(e){ console.error('renderAbaAtual:',aba,e.message); }
+}
+
+// Detecta aba visível atualmente
+function _abaAtual(){
+  var s = document.querySelector('.section.active');
+  if(!s) return null;
+  var id = s.id || '';
+  return id.replace('sec-','');
+}
+
 // ══════════════════════════════════════════
 _tipoLogin = 'dono'; // valor inicial
 
-function entrarVendedora(){ /* substituído por email/senha */ }
-function mostrarSenha(tipo){ /* substituído por email/senha */ }
-function mostrarSenhaDono(){ /* substituído por email/senha */ }
 function voltarLogin(){
   document.getElementById('loginErro').textContent='';
   document.getElementById('inputEmail').value='';
@@ -1852,7 +1905,9 @@ function iniciarApp(){
   aplicarModo();
   atualizarLabel();
   carregarDespesas();
-  renderAll();
+  // Carrega apenas a aba inicial — sem renderAll completo
+  try { renderAbaAtual(); } catch(e){}
+  window.dispatchEvent(new Event('appPronto'));
 }
 function sair(){
   modoAtual='';
@@ -1870,17 +1925,25 @@ function aplicarModo(){
   const vend    = modoAtual==='vendedora';
   const nav = document.getElementById('bottomNav');
 
+  // Aplica classe no BODY (necessário para dono-only, dono-section, etc.)
+  document.body.className = dono ? 'modo-dono' : vend ? 'modo-vendedora' : gestor ? 'modo-gestor' : '';
+
   // badge
   const badge = document.getElementById('modoBadge');
-  if(dono)   { badge.textContent='👑 Gestoras';    badge.className='modo-badge badge-dono'; }
-  if(gestor) { badge.textContent='📣 Gestor';  badge.className='modo-badge'; badge.style.background='var(--azul-c)'; badge.style.color='#fff'; }
+  if(dono)   { badge.textContent='👑 Gestoras';  badge.className='modo-badge badge-dono'; }
+  if(gestor) { badge.textContent='📣 Gestor';    badge.className='modo-badge'; badge.style.background='var(--azul-c)'; badge.style.color='#fff'; }
   if(vend)   { badge.textContent='👩 Vendedora'; badge.className='modo-badge badge-vend'; }
 
-  // classes nav
+  // classes nav (mantém para CSS de navegação)
   nav.className = 'bottom-nav'
     + (dono   ? ' modo-dono'      : '')
     + (vend   ? ' modo-vendedora' : '')
     + (gestor ? ' modo-gestor'    : '');
+
+  // Seções exclusivas do dono — ocultar para vendedora e gestor
+  document.querySelectorAll('.dono-section').forEach(s=>{
+    s.style.display = dono ? '' : 'none';
+  });
 
   // custos no form venda
   document.getElementById('custosBox').style.display = dono ? 'block' : 'none';
@@ -1895,14 +1958,12 @@ function aplicarModo(){
 
   if(dono){
     showTabSilent('resumo');
-    // Resumo é o primeiro item visível para dono
     document.querySelector('.nav-dono-only')?.classList.add('active');
   } else if(gestor){
     showTabSilent('gestor');
-    // Anúncios é a primeira aba útil para gestor
     document.querySelector('.nav-gestor-only.nav-dono-only')?.classList.add('active');
   } else {
-    // Vendedora
+    // Vendedora — começa em +Venda
     showTabSilent('venda');
     document.querySelector('.nav-dono-vend')?.classList.add('active');
   }
@@ -1994,9 +2055,11 @@ function selMes(m){ pkMes=m; renderPicker(); }
 function showTab(id, el){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
+  const sec = document.getElementById('sec-'+id);
+  if(sec) sec.classList.add('active');
   if(el) el.classList.add('active');
-  renderAll();
+  // Lazy: só renderiza a aba que foi aberta
+  try { (_tabRender[id] || (()=>{}))(); } catch(e){ console.error('showTab:',id,e.message); }
   window.scrollTo({top:0,behavior:'smooth'});
 }
 function showTabSilent(id){
@@ -2005,7 +2068,7 @@ function showTabSilent(id){
   const sec = document.getElementById('sec-'+id);
   if(sec) sec.classList.add('active');
   const navItems = document.querySelectorAll('.nav-item');
-  navItems[0].classList.add('active');
+  if(navItems[0]) navItems[0].classList.add('active');
 }
 function showStab(subId, tabId, el){
   const parent = el.closest('.section');
@@ -2013,6 +2076,9 @@ function showStab(subId, tabId, el){
   parent.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
   document.getElementById('sub-'+subId).classList.add('active');
   el.classList.add('active');
+  // Lazy render sub-abas
+  if(subId==='prec') { try{ renderPrecSalvos(); renderNaoCadastrados(); }catch(e){} }
+  if(subId==='est')  { try{ renderEstoque(); }catch(e){} }
 }
 
 // ══════════════════════════════════════════
@@ -4553,6 +4619,9 @@ function renderGestor(){
 // EXPORT EXCEL
 // ══════════════════════════════════════════
 function exportarExcel(){
+  carregarXLSX(function(){ _exportarExcelReal(); });
+}
+function _exportarExcelReal(){
   // Gera CSV com todas as informações do mês
   const mes = vPeriodo();
   const k   = dpKey();
@@ -4653,43 +4722,6 @@ function exportarExcel(){
   URL.revokeObjectURL(url);
   showToast('📊 Excel exportado!');
 }
-function exportarExcel_OLD(){
-  const mes = vPeriodo();
-  if(!mes.length){ showToast('⚠️ Nenhuma venda no período!','#F26522'); return; }
-
-  // Monta CSV (Excel abre CSV)
-  const header = ['Data','Cliente','Produto','Tamanho','Valor','Pagamento','Status','Custo Peça','Embalagem','Taxa Cartão','Uber/Boy','Frete','Vendedora','Outros','Total Custos','Lucro','Via Anúncio','Campanha','Vendedora1','Cidade'];
-  const linhas = mes.map(v=>[
-    new Date(v.data).toLocaleDateString('pt-BR'),
-    v.cli, v.prod, v.tam||'',
-    Number(v.val).toFixed(2).replace('.',','),
-    v.pag, v.status,
-    Number(v.custo||0).toFixed(2).replace('.',','),
-    Number(v.emb||0).toFixed(2).replace('.',','),
-    Number(v.taxaVal||0).toFixed(2).replace('.',','),
-    Number(v.uber||0).toFixed(2).replace('.',','),
-    Number(v.frete||0).toFixed(2).replace('.',','),
-    Number(v.vend||0).toFixed(2).replace('.',','),
-    Number(v.outros||0).toFixed(2).replace('.',','),
-    Number(v.totalC||0).toFixed(2).replace('.',','),
-    Number(v.lucro||0).toFixed(2).replace('.',','),
-    v.anuncio?'Sim':'Não',
-    v.anuncioNome||'',
-    v.vendedora1?'Sim':'Não',
-    v.cidade||''
-  ]);
-
-  const csv = '\uFEFF' + [header,...linhas].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(';')).join('\n');
-  const blob = new Blob([csv],{type:'text/csv;charset=utf-8'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href=url;
-  a.download=`BemNinos_${MESES[pMes]}_${pAno}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  showToast('📊 Excel exportado!');
-}
-
 // ══════════════════════════════════════════
 // ANÚNCIOS
 // ══════════════════════════════════════════
@@ -4713,15 +4745,11 @@ function renderAnuncios(){
 }
 
 function renderAll(){
-  const fns = [renderKPIs, renderAlertasPendentes, renderGrafico, renderPagamentos,
-    ()=>renderPedidos('listResumo',8), ()=>renderPedidos('listFull',999),
-    renderCatalogo, renderRelatorioVendedora, renderGestor, renderOrcamentos];
-  fns.forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll:',fn.name||'fn',e.message); } });
+  // Renderiza apenas a aba visível + dados globais leves
+  try { renderAbaAtual(); } catch(e){ console.error('renderAll:',e.message); }
+  // Atualiza badge do resumo se for dono (leve, sempre)
   if(modoAtual==='dono'){
-    [renderProdutos, renderClientes, renderBalanco, renderEstoque,
-     renderPrecSalvos, renderClientesFull, renderAnuncios, renderNaoCadastrados,
-     verificarCardClientesAntigos
-    ].forEach(fn=>{ try{ fn(); }catch(e){ console.error('renderAll dono:',fn.name||'fn',e.message); } });
+    try { renderAlertasPendentes(); } catch(e){}
   }
 }
 
@@ -4957,28 +4985,8 @@ async function salvarMetas(){
   const l=parseFloat(document.getElementById('mi-lucro').value); if(l) metas.lucro=l;
   localStorage.setItem('bn_m4',JSON.stringify(metas));
   await fbSalvarConfig('metas', metas);
-
-  const novaSenha=document.getElementById('mi-senha').value.trim();
-  if(novaSenha){
-    SENHA_DONO=novaSenha; localStorage.setItem('bn_senha',SENHA_DONO);
-    await fbSalvarConfig('senha',{valor:novaSenha});
-    document.getElementById('mi-senha').value='';
-  }
-  const novaSenhaG=document.getElementById('mi-senha-g').value.trim();
-  if(novaSenhaG){
-    SENHA_GESTOR=novaSenhaG; localStorage.setItem('bn_senha_g',SENHA_GESTOR);
-    await fbSalvarConfig('senha_gestor',{valor:novaSenhaG});
-    document.getElementById('mi-senha-g').value='';
-  }
-  const novaSenhaV=document.getElementById('mi-senha-v')?.value.trim();
-  if(novaSenhaV){
-    SENHA_VEND=novaSenhaV; localStorage.setItem('bn_senha_v',SENHA_VEND);
-    await fbSalvarConfig('senha_vend',{valor:novaSenhaV});
-    document.getElementById('mi-senha-v').value='';
-  }
   const novaComissao=parseFloat(document.getElementById('mi-comissao').value);
-  if(novaComissao){ COMISSAO_PCT=novaComissao; localStorage.setItem('bn_comissao',novaComissao); }
-
+  if(novaComissao){ COMISSAO_PCT=novaComissao; localStorage.setItem('bn_comissao',novaComissao); await fbSalvarConfig('comissao',{valor:novaComissao}); }
   renderBalanco(); showToast('🎯 Configurações salvas!');
 }
 
@@ -5099,19 +5107,21 @@ function removerFundoBranco(imgEl, tolerancia=30){
       var file = e.target.files[0];
       if(!file) return;
       document.getElementById('importXlsxNome').textContent = file.name;
-      var reader = new FileReader();
-      reader.onload = function(ev){
-        try {
-          var wb = XLSX.read(ev.target.result, {type:'binary'});
-          var ws = wb.Sheets[wb.SheetNames[0]];
-          var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
-          _importDados = parsePlanilha(rows);
-          mostrarPreview(_importDados);
-        } catch(err){
-          showToast('❌ Erro ao ler planilha: ' + err.message, '#dc2626');
-        }
-      };
-      reader.readAsBinaryString(file);
+      carregarXLSX(function(){
+        var reader = new FileReader();
+        reader.onload = function(ev){
+          try {
+            var wb = XLSX.read(ev.target.result, {type:'binary'});
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            var rows = XLSX.utils.sheet_to_json(ws, {defval:''});
+            _importDados = parsePlanilha(rows);
+            mostrarPreview(_importDados);
+          } catch(err){
+            showToast('❌ Erro ao ler planilha: ' + err.message, '#dc2626');
+          }
+        };
+        reader.readAsBinaryString(file);
+      });
     });
 
     btnConf && btnConf.addEventListener('click', confirmarImport);
