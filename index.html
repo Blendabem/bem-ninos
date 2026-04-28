@@ -373,6 +373,7 @@ textarea{resize:none;height:60px}
     <div class="nav-item nav-dono-only" onclick="showTab('prod',this)"><span class="nav-icon">👕</span><span class="nav-label">Produtos</span></div>
     <div class="nav-item nav-dono-only" onclick="showTab('estoque',this)"><span class="nav-icon">📦</span><span class="nav-label">Estoque</span></div>
     <div class="nav-item nav-dono-only" onclick="showTab('balanco',this)"><span class="nav-icon">💼</span><span class="nav-label">Balanço</span></div>
+    <div class="nav-item" onclick="showTab('scripts',this)"><span class="nav-icon">💬</span><span class="nav-label">Scripts</span></div>
   </nav>
 </div>
 
@@ -1237,6 +1238,15 @@ textarea{resize:none;height:60px}
     </div>
   </section>
 
+  <!-- SCRIPTS DE ATENDIMENTO -->
+  <section class="section" id="sec-scripts">
+    <div style="background:linear-gradient(135deg,#f8f4ff,#ede8ff);border-radius:16px;padding:16px;margin-bottom:12px;border:1.5px solid #d8ccff">
+      <div style="font-size:16px;font-weight:900;color:#5b21b6;margin-bottom:3px">💬 Scripts de Atendimento</div>
+      <div style="font-size:12px;color:#7c3aed;font-weight:600">Mensagens prontas — clique em Copiar e cole no WhatsApp</div>
+    </div>
+    <div id="scriptsLista"></div>
+  </section>
+
 </div><!-- /content -->
 
 
@@ -1839,8 +1849,216 @@ window.addEventListener('DOMContentLoaded', function(){
 
 
 // ══════════════════════════════════════════
-// LAZY LOADING & PERFORMANCE
+// SCRIPTS DE ATENDIMENTO
 // ══════════════════════════════════════════
+const SCRIPTS_ATENDIMENTO = [
+  {
+    categoria: '👋 Início do Atendimento',
+    cor: '#e0f2fe', corBorda: '#7dd3fc', corTitulo: '#0369a1',
+    scripts: [
+      {
+        titulo: 'Primeiro contato',
+        msg: 'Olá, [nome]! 😊 Seja bem-vinda à Bem Niños!\nVi seu interesse em nossos produtos e adorei poder te atender.\nPode me contar um pouquinho sobre o que você está procurando? Idade da criança, ocasião... assim consigo te ajudar a encontrar a peça perfeita! 🌸'
+      },
+      {
+        titulo: 'Resposta rápida ao contato',
+        msg: 'Olá, [nome]! Tudo bem? 💛\nObrigada por entrar em contato com a Bem Niños!\nFique à vontade para me contar o que está buscando — tenho novidades lindas e adoraria te mostrar as opções. 😍'
+      }
+    ]
+  },
+  {
+    categoria: '🛍️ Durante a Venda',
+    cor: '#f0fdf4', corBorda: '#86efac', corTitulo: '#15803d',
+    scripts: [
+      {
+        titulo: 'Apresentar produto',
+        msg: 'Olha que linda essa peça, [nome]! 😍\nÉ [nome do produto], feita em [tecido] — super confortável para o dia a dia e perfeita para [ocasião].\nEstá disponível nos tamanhos [tamanhos] e chega rapidinho! ✨'
+      },
+      {
+        titulo: 'Mais de um produto',
+        msg: 'Tenho algumas opções que acho que você vai amar, [nome]! 💛\nVou te mandar as fotos para você ver com calma e me dizer qual combina mais com o estilo da criança. 😊'
+      },
+      {
+        titulo: 'Dúvida sobre tamanho',
+        msg: 'Ótima pergunta, [nome]! 😊\nNossas peças seguem uma tabela bem fiel à idade. Para ajudar na escolha, me conta: qual o peso e a altura da criança? Assim garanto que vai ficar perfeito! 📏'
+      },
+      {
+        titulo: 'Confirmar pedido',
+        msg: 'Perfeito, [nome]! 🎉\nVou separar [produto(s)] para você.\nAssim que estiver tudo pronto te aviso com os dados para o pagamento. Alguma dúvida antes de fechar? 💛'
+      }
+    ]
+  },
+  {
+    categoria: '🤔 Cliente Ficou de Pensar',
+    cor: '#fefce8', corBorda: '#fde047', corTitulo: '#854d0e',
+    scripts: [
+      {
+        titulo: 'Follow-up suave (1 dia)',
+        msg: 'Oi, [nome]! 😊 Tudo bem?\nPassei para saber se você conseguiu pensar sobre [produto]. Fico à disposição se tiver alguma dúvida ou quiser ver outras opções! 💛\nSem compromisso, hein — só quero te ajudar a escolher o melhor. 🌸'
+      },
+      {
+        titulo: 'Follow-up com novidade (2-3 dias)',
+        msg: 'Oi, [nome]! Tinha que te mostrar essa novidade que chegou 😍\n[produto/descrição]\nLembrei de você na hora! Acha que combina? 💛'
+      },
+      {
+        titulo: 'Último aviso de disponibilidade',
+        msg: 'Oi, [nome]! Passei para avisar que a peça que você gostou está com as últimas unidades disponíveis. 🥺\nNão quero que você perca, mas fica à vontade! Se decidir, é só me chamar. 💛'
+      }
+    ]
+  },
+  {
+    categoria: '👻 Cliente Sumiu',
+    cor: '#fff7ed', corBorda: '#fdba74', corTitulo: '#9a3412',
+    scripts: [
+      {
+        titulo: 'Recontato gentil',
+        msg: 'Oi, [nome]! Tudo bem por aí? 😊\nFaz um tempinho que não nos falamos e fiquei com saudade! 💛\nSe quiser dar uma olhadinha nas novidades da Bem Niños, tenho peças lindas esperando por você. 🌸'
+      },
+      {
+        titulo: 'Recontato direto',
+        msg: 'Oi, [nome]! 😊\nSei que a vida fica corrida, mas lembrei de você e vim dar um alô.\nTem alguma coisa que posso te ajudar? Estou por aqui! 💛'
+      }
+    ]
+  },
+  {
+    categoria: '📦 Separou e Sumiu',
+    cor: '#fdf4ff', corBorda: '#e879f9', corTitulo: '#7e22ce',
+    scripts: [
+      {
+        titulo: 'Aviso de peça separada',
+        msg: 'Oi, [nome]! 😊\nSó passando para avisar que separei [produto] para você aqui.\nAssim que você confirmar, encaminho os dados para o pagamento e já providencio o envio! 🚀\nQualquer dúvida, estou por aqui. 💛'
+      },
+      {
+        titulo: 'Segundo aviso (24h depois)',
+        msg: 'Oi, [nome]! Tudo bem? 😊\n[Produto] ainda está separado esperando por você!\nSe mudar de ideia ou precisar de mais tempo, sem problema — só me avisa para eu saber como encaminhar. 💛'
+      },
+      {
+        titulo: 'Aviso final antes de repor',
+        msg: 'Oi, [nome]! Vim dar um último aviso carinhoso 🥺\n[Produto] ficou reservado para você, mas vou precisar repor o estoque em breve.\nSe ainda tiver interesse, é só me chamar agora — adoraria fechar com você! 💛'
+      }
+    ]
+  },
+  {
+    categoria: '💳 Pagamento Pendente',
+    cor: '#fff1f2', corBorda: '#fda4af', corTitulo: '#9f1239',
+    scripts: [
+      {
+        titulo: 'Lembrete gentil',
+        msg: 'Oi, [nome]! 😊\nPassei para lembrar que o pagamento de [produto] ainda está em aberto.\nAssim que confirmar, dou andamento imediatamente!\nQualquer dúvida, estou aqui. 💛'
+      },
+      {
+        titulo: 'Segundo lembrete',
+        msg: 'Oi, [nome]! Tudo bem?\nVi que o pagamento de [produto] ainda não foi concluído.\nSe tiver alguma dificuldade ou preferir outra forma de pagamento, me fala — vamos resolver juntas! 💛'
+      },
+      {
+        titulo: 'Encerramento do pedido',
+        msg: 'Oi, [nome]! Fiquei tentando falar com você sobre [produto], mas não consegui retorno.\nVou precisar liberar a peça para estoque, tudo bem?\nSe quiser retomar depois, é só me chamar — fico feliz em te atender! 💛'
+      }
+    ]
+  },
+  {
+    categoria: '🌱 Reativação',
+    cor: '#f0fdf4', corBorda: '#4ade80', corTitulo: '#14532d',
+    scripts: [
+      {
+        titulo: 'Cliente sem comprar há mais de 40 dias',
+        msg: 'Oi, [nome]! Saudades! 🥰\nFicamos um tempinho sem conversar e vim dar um alô.\nTem novidades lindas chegando aqui na Bem Niños — tenho certeza que você vai amar!\nPosso te mostrar? 💛'
+      },
+      {
+        titulo: 'Reativação com oferta especial',
+        msg: 'Oi, [nome]! 💛 Estava pensando em você!\nTemos uma seleção especial de peças que separei com carinho para clientes especiais como você.\nQuando puder dar uma olhadinha, é só me chamar! 🌸'
+      }
+    ]
+  },
+  {
+    categoria: '🤝 Fechamento',
+    cor: '#eff6ff', corBorda: '#93c5fd', corTitulo: '#1e40af',
+    scripts: [
+      {
+        titulo: 'Confirmação do pedido',
+        msg: '🎉 Pedido confirmado, [nome]!\n\nResumo:\n📦 [Produto(s)]\n💲 Total: R$ [valor]\n💳 Pagamento: [forma]\n📍 Entrega: [endereço ou retirada]\n\nAssim que o pagamento for confirmado, já separo tudo com muito carinho! 💛\nObrigada pela confiança na Bem Niños! 🌸'
+      },
+      {
+        titulo: 'Envio do Pix',
+        msg: 'Oi, [nome]! Para fechar, segue o Pix:\n\n🔑 Chave: [chave Pix]\n📛 Nome: [nome]\n💲 Valor: R$ [valor]\n\nAssim que confirmar o pagamento me avisa ou manda o comprovante aqui, pode ser? 😊💛'
+      },
+      {
+        titulo: 'Confirmação de pagamento recebido',
+        msg: 'Pagamento confirmado, [nome]! 🎉💛\nSua peça já está sendo separada com todo carinho.\n[Se envio: Vou te passar o código de rastreio assim que despachar! 📦]\nObrigada pela confiança! 🌸'
+      }
+    ]
+  },
+  {
+    categoria: '⭐ Pós-Venda',
+    cor: '#fffbeb', corBorda: '#fcd34d', corTitulo: '#78350f',
+    scripts: [
+      {
+        titulo: 'Confirmação de entrega',
+        msg: 'Oi, [nome]! 😊\nPassei para saber se [produto] chegou certinho e se está tudo do jeitinho que você esperava!\nAdoro saber que a criançada ficou feliz. 🥰💛'
+      },
+      {
+        titulo: 'Pedido de avaliação',
+        msg: 'Oi, [nome]! Espero que esteja tudo ótimo com [produto]! 🌸\nSua opinião é muito importante para a gente. Se quiser me contar como foi a experiência, ficaria muito feliz! 💛\nE se precisar de qualquer coisa, estou sempre por aqui. 😊'
+      },
+      {
+        titulo: 'Indicação',
+        msg: 'Oi, [nome]! 💛\nFico muito feliz que você gostou!\nSe conhecer alguém que também curte roupa de qualidade para criança, adoraria atender!\nIndique a Bem Niños — cada criança merece se sentir especial. 🌸'
+      }
+    ]
+  }
+];
+
+function renderScripts(){
+  const el = document.getElementById('scriptsLista');
+  if(!el) return;
+  el.innerHTML = SCRIPTS_ATENDIMENTO.map(cat => `
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:900;color:${cat.corTitulo};padding:8px 12px;background:${cat.cor};border-radius:10px;border-left:4px solid ${cat.corBorda};margin-bottom:8px">
+        ${cat.categoria}
+      </div>
+      ${cat.scripts.map((s,i) => `
+        <div style="background:#fff;border:1.5px solid ${cat.corBorda};border-radius:12px;padding:14px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:800;color:${cat.corTitulo};margin-bottom:8px">${s.titulo}</div>
+          <div style="font-size:13px;color:#374151;line-height:1.6;white-space:pre-wrap;background:#f9fafb;border-radius:8px;padding:10px;margin-bottom:10px">${s.msg}</div>
+          <button onclick="copiarScript(this, ${JSON.stringify(s.msg).replace(/'/g,"\\'")})"
+            style="width:100%;padding:10px;background:${cat.cor};color:${cat.corTitulo};border:1.5px solid ${cat.corBorda};border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;transition:.2s">
+            📋 Copiar mensagem
+          </button>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function copiarScript(btn, texto){
+  navigator.clipboard.writeText(texto).then(function(){
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✅ Mensagem copiada!';
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#15803d';
+    btn.style.borderColor = '#86efac';
+    setTimeout(function(){
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+    }, 2000);
+  }).catch(function(){
+    // Fallback para iOS Safari
+    var ta = document.createElement('textarea');
+    ta.value = texto;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); } catch(e){}
+    document.body.removeChild(ta);
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✅ Mensagem copiada!';
+    btn.style.background = '#dcfce7';
+    btn.style.color = '#15803d';
+    setTimeout(function(){ btn.innerHTML = orig; btn.style.background=''; btn.style.color=''; }, 2000);
+  });
+}
 
 // Controle de abas já carregadas
 const _tabsCarregadas = new Set();
@@ -1873,6 +2091,7 @@ const _tabRender = {
   'estoque':       ()=>{ if(window.abrirListenerEstoque) abrirListenerEstoque(); renderEstoque(); renderPrecSalvos(); renderNaoCadastrados(); },
   'clientes':      ()=>{ renderClientesFull(); verificarCardClientesAntigos(); },
   'balanco':       ()=>{ renderBalanco(); },
+  'scripts':       ()=>{ renderScripts(); },
 };
 
 // Render apenas da aba visível
