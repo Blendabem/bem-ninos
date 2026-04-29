@@ -5381,6 +5381,7 @@ function removerFundoBranco(imgEl, tolerancia=30){
     var IDADES = ['1','2','3','4','6','8','10','12','14','16'];
     var TAMANHOS = ['P','M','G','GG'];
     var colMap = {
+      sku:  ['SKU','sku','Código','codigo','Cod.'],
       nome: ['Nome do Produto *','Nome do Produto','nome'],
       preco: ['Preço Final (R$) *','Preço Final (R$)','Preço Final','preco','preço'],
       custo: ['Custo da Peça (R$)','Custo','custo'],
@@ -5389,8 +5390,22 @@ function removerFundoBranco(imgEl, tolerancia=30){
       uso: ['Uso  (Dia a dia / Passeio / Ambos)','Uso (Dia a dia / Passeio / Ambos)','Uso','uso'],
       idades: ['Idades/Tamanhos  (ex: 1,2,4 ou P,M,G)','Idades/Tamanhos','Idades','idades'],
       detalhes: ['Detalhes / Obs.','Detalhes','detalhes'],
-      foto: ['Link da Foto','Link Foto','foto']
+      foto: ['Link da Foto','Link Foto','fotoUrl','foto']
     };
+
+    // Converte qualquer link do Google Drive para formato direto (compatível com <img src>)
+    function normalizarFoto(url) {
+      if (!url) return '';
+      url = url.trim();
+      // formato: /file/d/ID/view ou /file/d/ID/edit
+      var m1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      if (m1) return 'https://drive.google.com/uc?export=view&id=' + m1[1];
+      // formato: open?id=ID ou uc?id=ID
+      var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+      if (m2) return 'https://drive.google.com/uc?export=view&id=' + m2[1];
+      // URL direta (não é Drive)
+      return url;
+    }
 
     function getCol(row, keys){
       for(var i=0;i<keys.length;i++){
@@ -5411,7 +5426,8 @@ function removerFundoBranco(imgEl, tolerancia=30){
       var uso = String(getCol(row, colMap.uso)).trim();
       var idadesStr = String(getCol(row, colMap.idades)).trim();
       var detalhes = String(getCol(row, colMap.detalhes)).trim();
-      var foto = String(getCol(row, colMap.foto)).trim();
+      var fotoRaw = String(getCol(row, colMap.foto)).trim();
+      var fotoUrl = normalizarFoto(fotoRaw);
 
       // Montar qtdPorIdade a partir das colunas Qtd. X
       var qtdPorIdade = {};
@@ -5437,14 +5453,22 @@ function removerFundoBranco(imgEl, tolerancia=30){
 
       var qtdTotal = Object.values(qtdPorIdade).reduce(function(a,b){return a+b;},0) || idadesList.length || 1;
 
-      // Busca produto existente pelo nome (normalizado) para reutilizar o ID
-      // Isso evita duplicatas ao reimportar a planilha
-      var nomeNorm = nome.trim().toLowerCase();
-      var existente = (precDB||[]).find(function(x){ return (x.nome||'').trim().toLowerCase() === nomeNorm; });
-      var prodId = existente ? existente.id : ('p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5));
+      // ID único: SKU da planilha > SKU existente no Firebase > busca por nome > gera novo
+      var skuRaw = String(getCol(row, colMap.sku)).trim();
+      var prodId;
+      if (skuRaw) {
+        // SKU vira o ID fixo — p_SKU (normalizado, sem espaços)
+        prodId = 'p_' + skuRaw.replace(/\s+/g, '_').toLowerCase();
+      } else {
+        // Sem SKU: tenta casar pelo nome exato no Firebase para evitar duplicatas
+        var nomeNorm = nome.trim().toLowerCase();
+        var existente = (precDB||[]).find(function(x){ return (x.nome||'').trim().toLowerCase() === nomeNorm; });
+        prodId = existente ? existente.id : ('p_' + Date.now() + '_' + Math.random().toString(36).substr(2,5));
+      }
 
       produtos.push({
         id: prodId,
+        sku: skuRaw || null,
         nome: nome,
         preco: preco,
         custo: custo,
@@ -5452,7 +5476,8 @@ function removerFundoBranco(imgEl, tolerancia=30){
         cores: cores,
         uso: uso,
         detalhes: detalhes,
-        foto: foto,
+        fotoUrl: fotoUrl,
+        foto: fotoUrl,        // mantém campo legado para compatibilidade com o app
         idades: idadesList,
         qtdPorIdade: qtdPorIdade,
         qtdEstoque: qtdTotal
