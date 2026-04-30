@@ -903,14 +903,19 @@ textarea{resize:none;height:60px}
         <div style="font-size:12px;color:var(--sub);margin-bottom:14px">Ferramentas administrativas para organizar o banco de produtos.</div>
         <div style="display:flex;flex-direction:column;gap:10px">
           <div>
+            <button class="btn btn-secondary" id="btnSincronizarCatalogo" style="border-color:#1843A0;color:#1843A0;width:100%">Sincronizar Catálogo Público</button>
+            <div style="font-size:11px;color:var(--sub);margin-top:4px">Copia os campos públicos de cada produto para a coleção <strong>precos</strong>. O catálogo lê apenas essa coleção.</div>
+          </div>
+          <div>
             <button class="btn btn-secondary" id="btnApagarTodosProdutos" style="border-color:#dc2626;color:#dc2626;width:100%">Apagar Todos os Produtos</button>
-            <div style="font-size:11px;color:var(--sub);margin-top:4px">Remove todos os produtos da coleção. Use antes de reimportar a planilha completa.</div>
+            <div style="font-size:11px;color:var(--sub);margin-top:4px">Remove todos os produtos da coleção interna. Use antes de reimportar a planilha completa.</div>
           </div>
           <div>
             <button class="btn btn-secondary" id="btnLimparDuplicados" style="border-color:#F59E0B;color:#B45309;width:100%">Remover Duplicados por SKU</button>
             <div style="font-size:11px;color:var(--sub);margin-top:4px">Mantém apenas o produto mais recente de cada SKU.</div>
           </div>
         </div>
+        <div id="sincronizarResult" style="display:none;margin-top:10px"></div>
         <div id="limparDuplicadosResult" style="display:none;margin-top:10px"></div>
       </div>
 
@@ -4568,6 +4573,16 @@ async function fbSalvarEstoque(item){
   } catch(e){ console.error('fbSalvarEstoque:', e); showToast('❌ Erro ao salvar estoque','#dc2626'); return false; }
 }
 
+// Campos permitidos na coleção pública "precos" — sem dados financeiros internos
+function _camposPublicos(obj) {
+  var pub = {};
+  var permitidos = ['id','sku','nome','preco','precoVenda','fotoUrl','foto',
+                    'idades','qtdPorIdade','qtdEstoque','uso','categoria','descricao',
+                    'descricaoCatalogo','updatedAt'];
+  permitidos.forEach(function(k){ if(obj[k] !== undefined) pub[k] = obj[k]; });
+  return pub;
+}
+
 async function fbSalvarPrec(obj){
   try {
     localStorage.setItem('bn_prec', JSON.stringify(precDB));
@@ -4577,7 +4592,12 @@ async function fbSalvarPrec(obj){
     var rawId = String(obj.id||Date.now());
     var docId = rawId.startsWith('p_') ? rawId : 'p_' + rawId;
     obj.id = docId; // normaliza o ID no objeto
+    // Salva completo na coleção interna
     await setDoc(doc(db,'precificacao', docId), obj);
+    // Espelha campos públicos na coleção do catálogo
+    try {
+      await setDoc(doc(db,'precos', docId), _camposPublicos(obj), {merge:true});
+    } catch(e2){ console.warn('fbSalvarPrec/precos:', e2.message); }
     // Atualiza precDB com ID normalizado
     const idx2 = precDB.findIndex(p=>p.id === docId || String(p.id) === rawId);
     if(idx2 >= 0) precDB[idx2] = obj;
@@ -5452,6 +5472,8 @@ function removerFundoBranco(imgEl, tolerancia=30){
     btnCanc   && btnCanc.addEventListener('click', cancelarImport);
     btnLimpar && btnLimpar.addEventListener('click', limparProdutosDuplicadosPorSKU);
     btnApagar && btnApagar.addEventListener('click', apagarTodosProdutos);
+    var btnSync = document.getElementById('btnSincronizarCatalogo');
+    btnSync  && btnSync.addEventListener('click', sincronizarCatalogo);
   }
 
   function _resetImportUI(){
@@ -5868,6 +5890,99 @@ function removerFundoBranco(imgEl, tolerancia=30){
       if (typeof renderPrecificacoes === 'function') renderPrecificacoes();
       resultEl.innerHTML = '<div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:8px;padding:10px 12px;font-size:12px;color:#166534"><strong>'+ok+' duplicado(s) removido(s).</strong>'+(errs?' '+errs+' erro(s).':'')+'</div>';
     };
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  //  SINCRONIZAR CATÁLOGO PÚBLICO (precificacao → precos)
+  // ══════════════════════════════════════════════════════════════════
+  async function sincronizarCatalogo(){
+    var resultEl = document.getElementById('sincronizarResult');
+    if (!resultEl) return;
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = '<div style="font-size:12px;color:var(--azul)">Lendo produtos internos...</div>';
+
+    if (!_fbReady) {
+      resultEl.innerHTML = '<div style="font-size:12px;color:#dc2626">Firebase não está pronto.</div>';
+      return;
+    }
+
+    // Buscar todos da precificacao (coleção interna)
+    var todos = [];
+    try {
+      var snap = await window._fb.db.collection('precificacao').get();
+      snap.forEach(function(d){ todos.push(Object.assign({id: d.id}, d.data())); });
+    } catch(e) {
+      resultEl.innerHTML = '<div style="font-size:12px;color:#dc2626">Erro ao ler precificacao: ' + e.message + '</div>';
+      return;
+    }
+
+    if (!todos.length) {
+      resultEl.innerHTML = '<div style="font-size:12px;color:#B45309">Nenhum produto encontrado na coleção interna.</div>';
+      return;
+    }
+
+    resultEl.innerHTML = '<div style="background:#f0f4ff;border-radius:8px;padding:12px 14px">'
+      + '<div id="syncMsg" style="font-size:12px;font-weight:800;color:var(--azul)">Sincronizando 0/' + todos.length + '...</div>'
+      + '<div style="background:#D8DEFF;border-radius:6px;height:6px;overflow:hidden;margin-top:8px">'
+      + '<div id="syncBar" style="background:var(--azul);height:100%;width:0%;transition:width .2s"></div>'
+      + '</div></div>';
+
+    var syncMsg = document.getElementById('syncMsg');
+    var syncBar = document.getElementById('syncBar');
+
+    var CAMPOS_PUBLICOS = ['id','sku','nome','preco','precoVenda','fotoUrl','foto',
+                           'idades','qtdPorIdade','qtdEstoque','uso','categoria',
+                           'descricao','descricaoCatalogo','updatedAt'];
+
+    var sincronizados = 0, ignorados = 0, semFoto = 0, semEstoque = 0, erros = 0;
+
+    for (var i = 0; i < todos.length; i++) {
+      var p = todos[i];
+      syncMsg.textContent = 'Sincronizando ' + (i+1) + '/' + todos.length + ': ' + (p.nome||p.id);
+      syncBar.style.width = Math.round(((i+1)/todos.length)*100) + '%';
+
+      if (!p.nome || !p.preco) { ignorados++; continue; }
+
+      // Monta objeto público — SEM custo, margem, lucro, fornecedor
+      var pub = {};
+      CAMPOS_PUBLICOS.forEach(function(k){ if (p[k] !== undefined) pub[k] = p[k]; });
+      pub.updatedAt = Date.now();
+
+      if (!pub.fotoUrl && !pub.foto) semFoto++;
+      if (!pub.qtdEstoque && (!pub.qtdPorIdade || Object.keys(pub.qtdPorIdade||{}).length === 0)) semEstoque++;
+
+      try {
+        await window._fb.db.collection('precos').doc(p.id).set(pub, {merge: true});
+        sincronizados++;
+      } catch(e) {
+        erros++;
+        console.error('Sync erro:', p.id, e.message);
+      }
+
+      if ((i+1) % 20 === 0) await new Promise(function(r){ setTimeout(r, 150); });
+    }
+
+    syncBar.style.width = '100%';
+    syncBar.style.background = erros ? 'var(--amarelo)' : 'var(--verde)';
+
+    var html = '<div style="background:#F0FDF4;border:1.5px solid #86EFAC;border-radius:10px;padding:12px 14px;margin-top:8px">'
+      + '<div style="font-size:13px;font-weight:800;color:#166534;margin-bottom:8px">Sincronização concluída</div>';
+    var linhas = [
+      {l:'Produtos sincronizados', v:sincronizados, c:'#16a34a'},
+      {l:'Ignorados (sem nome/preço)', v:ignorados, c:ignorados?'#B45309':'var(--sub)'},
+      {l:'Sem foto', v:semFoto, c:semFoto?'#dc2626':'var(--sub)'},
+      {l:'Sem estoque', v:semEstoque, c:semEstoque?'#F59E0B':'var(--sub)'},
+      {l:'Erros', v:erros, c:erros?'#dc2626':'var(--sub)'},
+    ];
+    linhas.forEach(function(l){
+      html += '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #d1fae5">'
+        + '<span style="font-size:12px;color:var(--txt)">' + l.l + '</span>'
+        + '<strong style="font-size:13px;color:' + l.c + '">' + l.v + '</strong></div>';
+    });
+    html += '<div style="font-size:11px;color:var(--sub);margin-top:8px">Coleção pública <strong>precos</strong> atualizada. O catálogo já pode ler os produtos.</div>';
+    html += '</div>';
+    resultEl.innerHTML = html;
+    showToast(sincronizados + ' produtos sincronizados em precos', '#16a34a');
   }
 
   if (document.readyState === 'loading'){
