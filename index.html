@@ -5893,31 +5893,55 @@ function removerFundoBranco(imgEl, tolerancia=30){
   }
 
   // ══════════════════════════════════════════════════════════════════
-  //  SINCRONIZAR CATÁLOGO PÚBLICO (precificacao → precos)
+  //  SINCRONIZAR CATÁLOGO PÚBLICO (precDB → precos)
   // ══════════════════════════════════════════════════════════════════
   async function sincronizarCatalogo(){
     var resultEl = document.getElementById('sincronizarResult');
     if (!resultEl) return;
     resultEl.style.display = 'block';
-    resultEl.innerHTML = '<div style="font-size:12px;color:var(--azul)">Lendo produtos internos...</div>';
+    resultEl.innerHTML = '<div style="font-size:12px;color:var(--azul)">Carregando produtos...</div>';
 
     if (!_fbReady) {
       resultEl.innerHTML = '<div style="font-size:12px;color:#dc2626">Firebase não está pronto.</div>';
       return;
     }
 
-    // Buscar todos da precificacao (coleção interna)
-    var todos = [];
-    try {
-      var snap = await window._fb.db.collection('precificacao').get();
-      snap.forEach(function(d){ todos.push(Object.assign({id: d.id}, d.data())); });
-    } catch(e) {
-      resultEl.innerHTML = '<div style="font-size:12px;color:#dc2626">Erro ao ler precificacao: ' + e.message + '</div>';
-      return;
+    // Usar precDB — mesma fonte que alimenta a aba Preços
+    // precDB é carregado do localStorage + sincronizado com Firebase via onSnapshot
+    var todos = (typeof precDB !== 'undefined' && precDB && precDB.length)
+      ? precDB.slice()   // cópia do array em memória
+      : [];
+
+    console.log("Fonte usada para sincronizar: precDB (localStorage + Firebase onSnapshot)");
+    console.log("Produtos encontrados para sincronizar:", todos.length);
+
+    // Se precDB estiver vazio, tentar buscar do Firebase diretamente como fallback
+    if (!todos.length) {
+      try {
+        var snap = await window._fb.db.collection('precificacao').get();
+        snap.forEach(function(d){ todos.push(Object.assign({id: d.id}, d.data())); });
+        console.log("Fallback Firebase precificacao:", todos.length, "docs");
+      } catch(e) {
+        console.warn("Fallback Firebase falhou:", e.message);
+      }
+    }
+
+    // Se ainda vazio, tenta localStorage diretamente
+    if (!todos.length) {
+      try {
+        var lsData = localStorage.getItem('bn_prec');
+        if (lsData) {
+          todos = JSON.parse(lsData);
+          console.log("Fallback localStorage bn_prec:", todos.length, "produtos");
+        }
+      } catch(e) { console.warn("Fallback localStorage falhou:", e.message); }
     }
 
     if (!todos.length) {
-      resultEl.innerHTML = '<div style="font-size:12px;color:#B45309">Nenhum produto encontrado na coleção interna.</div>';
+      resultEl.innerHTML = '<div style="background:#FEF3C7;border:1.5px solid #F59E0B;border-radius:8px;padding:12px">'
+        + '<div style="font-size:13px;font-weight:800;color:#92400E">Nenhum produto encontrado</div>'
+        + '<div style="font-size:12px;color:#78350F;margin-top:4px">precDB está vazio. Certifique-se de que os produtos foram importados e que a aba Preços está mostrando produtos.</div>'
+        + '</div>';
       return;
     }
 
