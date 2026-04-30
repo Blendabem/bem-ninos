@@ -3322,6 +3322,17 @@ function calcResumoEstoque(){
   elPecas.textContent = totalPecas;
 }
 
+// Resolve foto: aceita fotoUrl (importação) ou foto (legado), converte Drive
+function resolverFotoApp(p) {
+  var url = (p.fotoUrl || p.foto || '').trim();
+  if (!url) return '';
+  var m1 = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (m1) return 'https://drive.google.com/uc?export=view&id=' + m1[1];
+  var m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (m2) return 'https://drive.google.com/uc?export=view&id=' + m2[1];
+  return url;
+}
+
 function renderPrecSalvos(){
   calcResumoEstoque();
   renderNaoCadastrados();
@@ -3334,7 +3345,7 @@ function renderPrecSalvos(){
   if(!precOrdenado.length){ el.innerHTML='<div class="vazio"><span class="vazio-e">🔍</span>Nenhum produto encontrado para "<strong>'+busca+'</strong>"</div>'; return; }
   el.innerHTML=precOrdenado.map((p,i)=>`
     <div class="prec-salvo-item">
-      ${p.foto?`<img src="${p.foto}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px" onerror="this.style.display='none'" onload="this.style.display='block'">`:''}
+      ${resolverFotoApp(p)?`<img src="${resolverFotoApp(p)}" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:8px" onerror="this.style.display='none'" onload="this.style.display='block'">`:''}
       <div class="prec-salvo-header">
         <div style="flex:1;min-width:0">
           <div class="prec-salvo-nome">${p.nome}</div>
@@ -3630,14 +3641,15 @@ function abrirDetalhe(prodId){
   document.getElementById('prodDetalheNome').textContent = p.nome;
   document.getElementById('prodDetalhePreco').textContent = brl(p.precoFinal||p.preco||0);
 
-  // Foto
-  if(p.foto){
+  // Foto — usa resolverFotoApp para aceitar fotoUrl ou foto
+  var _fotoModal = resolverFotoApp(p);
+  if(_fotoModal){
     document.getElementById('prodDetalheImg').style.display='block';
     document.getElementById('prodDetalheSemFoto').style.display='none';
-    document.getElementById('prodDetalheFoto').src = p.foto;
-    document.getElementById('prodDetalheFotoLink').href = p.foto;
+    document.getElementById('prodDetalheFoto').src = _fotoModal;
+    document.getElementById('prodDetalheFotoLink').href = _fotoModal;
     document.getElementById('prodDetalheLinkBox').style.display='block';
-    document.getElementById('prodDetalheLinkBtn').href = p.foto;
+    document.getElementById('prodDetalheLinkBtn').href = _fotoModal;
   } else {
     document.getElementById('prodDetalheImg').style.display='none';
     document.getElementById('prodDetalheSemFoto').style.display='block';
@@ -3795,7 +3807,7 @@ function renderCatalogo(){
               style="flex:1;padding:7px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer">
               🔍 Detalhes
             </button>
-            ${p.foto ? `<a href="${p.foto}" target="_blank" rel="noopener"
+            ${resolverFotoApp(p) ? `<a href="${resolverFotoApp(p)}" target="_blank" rel="noopener"
               style="flex:1;padding:7px;background:#f0f4ff;color:var(--azul);border:1.5px solid #D8DEFF;border-radius:8px;font-size:12px;font-weight:800;text-decoration:none;text-align:center">
               📷 Foto ↗
             </a>` : ''}
